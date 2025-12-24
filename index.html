@@ -44,13 +44,14 @@
         th { background: var(--dark); color: white; padding: 12px; text-align: left; font-size: 12px; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
+        /* Estilos Curva ABC */
         .high-priority { border-left: 8px solid #ff1744 !important; background: #fff1f1; }
+        .badge-red { background: #ff1744; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .badge-success { background: var(--success); color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
 
         .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
         .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
 
-        /* AJUSTE TÉRMICO 70mm */
         @media print {
             .no-print { display: none !important; }
             body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; color: #000 !important; }
@@ -119,9 +120,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Produto / Motivo</th>
+                        <th>Produto / Detalhes</th>
                         <th>Qtd</th>
-                        <th>Custo/Venda</th>
+                        <th>Preços</th>
                         <th>Lucro Total</th>
                         <th>Venda Total</th>
                         <th class="no-print">Ações</th>
@@ -139,7 +140,7 @@
                         <th>Qtd</th>
                         <th>Data Falta</th>
                         <th>Data Compra</th>
-                        <th>Status</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="corpoHistorico"></tbody>
@@ -219,25 +220,51 @@
                 let isHigh = lucTotal >= 50;
                 corpo.innerHTML += `
                     <tr class="${isHigh ? 'high-priority' : ''}">
-                        <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small></td>
+                        <td>
+                            <strong>${i.desc}</strong><br>
+                            <small>${i.data} | ${i.motivo}</small>
+                            ${isHigh ? '<br><span class="badge-red">ALTA PERDA</span>' : ''}
+                        </td>
                         <td>${i.qtd}</td>
                         <td>C: ${i.custo.toFixed(2)} / V: ${i.venda.toFixed(2)}</td>
                         <td>R$ ${lucTotal.toFixed(2)}</td>
                         <td><strong>R$ ${vTotal.toFixed(2)}</strong></td>
                         <td class="no-print">
-                            <button onclick="marcarComprado('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:16px;">✅</button>
-                            <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:16px; margin-left:5px;">✎</button>
-                            <button onclick="removerItem('${i.id}')" style="cursor:pointer; border:none; background:none; color:red; font-size:16px; margin-left:5px;">🗑</button>
+                            <button title="Comprado" onclick="marcarComprado('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px;">✅</button>
+                            <button title="Editar" onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px; margin-left:8px;">✎</button>
+                            <button title="Remover" onclick="removerItem('${i.id}')" style="cursor:pointer; border:none; background:none; color:red; font-size:18px; margin-left:8px;">🗑</button>
                         </td>
                     </tr>`;
             } else {
-                corpoHist.innerHTML += `<tr><td><strong>${i.desc}</strong></td><td>${i.qtd}</td><td>${i.data}</td><td>${i.dataCompra}</td><td><span class="badge-success">OK</span></td></tr>`;
+                corpoHist.innerHTML += `
+                    <tr>
+                        <td><strong>${i.desc}</strong></td>
+                        <td>${i.qtd}</td>
+                        <td>${i.data}</td>
+                        <td>${i.dataCompra}</td>
+                        <td>
+                            <button onclick="reverterCompra('${i.id}')" style="background:#607d8b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">↩ Estornar</button>
+                            <button onclick="removerItem('${i.id}')" style="background:none; border:none; color:red; cursor:pointer; font-size:16px; margin-left:10px;">🗑</button>
+                        </td>
+                    </tr>`;
             }
         });
 
         document.getElementById('dashVenda').innerText = `R$ ${tVenda.toFixed(2)}`;
         document.getElementById('dashLucro').innerText = `R$ ${tLucro.toFixed(2)}`;
         document.getElementById('dashMargem').innerText = `${tVenda > 0 ? ((tLucro/tVenda)*100).toFixed(2) : 0}%`;
+    }
+
+    function marcarComprado(id) {
+        if(confirm("Confirmar reposição no estoque?")) {
+            db.ref('faltas/' + id).update({ comprado: true, dataCompra: new Date().toLocaleDateString('pt-BR') });
+        }
+    }
+
+    function reverterCompra(id) {
+        if(confirm("Deseja mover este item de volta para a lista de faltas?")) {
+            db.ref('faltas/' + id).update({ comprado: false, dataCompra: null });
+        }
     }
 
     function adicionarAoFirebase() {
@@ -256,12 +283,6 @@
         limparCampos();
     }
 
-    function marcarComprado(id) {
-        if(confirm("Confirmar reposição no estoque?")) {
-            db.ref('faltas/' + id).update({ comprado: true, dataCompra: new Date().toLocaleDateString('pt-BR') });
-        }
-    }
-
     function editarItem(id) {
         const i = dadosCompletos.find(x => x.id === id);
         document.getElementById('desc').value = i.desc;
@@ -272,6 +293,7 @@
         document.getElementById('editId').value = id;
         document.getElementById('btnAdd').style.display = 'none';
         document.getElementById('btnUpdate').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function salvarEdicaoFirebase() {
@@ -304,12 +326,15 @@
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Status\n';
-        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${i.custo};${i.venda};${i.comprado ? 'Comprado':'Falta'}\n`);
+        let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Lucro;Status\n';
+        dadosCompletos.forEach(i => {
+            const luc = (i.venda - i.custo) * i.qtd;
+            csv += `${i.data};${i.desc};${i.qtd};${i.custo};${i.venda};${luc.toFixed(2)};${i.comprado ? 'Comprado':'Em Falta'}\n`;
+        });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "souza_farma_completo.csv";
+        link.download = "relatorio_souza_farma.csv";
         link.click();
     }
 
@@ -320,12 +345,12 @@
     }
 
     function enviarWhatsApp() {
-        let msg = `*SOUZA FARMA - FALTAS*%0A`;
+        let msg = `*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A`;
         dadosCompletos.filter(i => !i.comprado).forEach(i => msg += `• ${i.desc} (Qtd: ${i.qtd})%0A`);
         window.open(`https://wa.me/5598986287296?text=${msg}`);
     }
 
-    function removerItem(id) { if(confirm("Apagar da nuvem?")) db.ref('faltas/' + id).remove(); }
+    function removerItem(id) { if(confirm("Apagar permanentemente?")) db.ref('faltas/' + id).remove(); }
     function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; }
 </script>
 </body>

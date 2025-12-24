@@ -11,7 +11,7 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #eaeff2; color: #333; }
         
         /* Login */
-        #loginScreen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--dark); }
+        #loginScreen { display: none; align-items: center; justify-content: center; height: 100vh; background: var(--dark); }
         .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 320px; border-top: 8px solid var(--primary); }
         
         /* App */
@@ -40,7 +40,7 @@
         th { background: var(--dark); color: white; padding: 12px; text-align: left; font-size: 12px; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
-        /* Estilos Curva ABC */
+        /* Curva ABC */
         .high-priority { border-left: 8px solid #ff1744 !important; background: #fff1f1; }
         .high-margin { border-left: 8px solid #00c853 !important; }
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; margin-top: 4px; display: inline-block; }
@@ -132,7 +132,7 @@
             <button class="btn-action" style="background:#263238" onclick="imprimir('70mm')">🧾 TÉRMICA</button>
             <button class="btn-action" style="background:#25d366" onclick="enviarWhatsApp()">📲 WHATSAPP</button>
             <button class="btn-action" style="background:#1565c0" onclick="exportarExcel()">📊 EXCEL</button>
-            <button class="btn-action" style="background:#f44336" onclick="location.reload()">🔒 SAIR</button>
+            <button class="btn-action" style="background:#f44336" onclick="logout()">🔒 SAIR</button>
         </div>
     </div>
 </div>
@@ -153,12 +153,28 @@
     let dadosCompletos = [];
     document.getElementById('dataReg').valueAsDate = new Date();
 
+    // LÓGICA DE LOGIN PERSISTENTE NA ABA
+    window.onload = function() {
+        if (sessionStorage.getItem('logado') === 'true') {
+            document.getElementById('mainApp').style.display = 'block';
+            carregarTudo();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+    };
+
     function checkLogin() {
         if(document.getElementById('passInput').value === 'farma123') {
+            sessionStorage.setItem('logado', 'true');
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             carregarTudo();
         } else { alert("Senha Incorreta!"); }
+    }
+
+    function logout() {
+        sessionStorage.removeItem('logado');
+        location.reload();
     }
 
     function adicionarAoFirebase() {
@@ -200,7 +216,6 @@
             const margemUnit = i.venda > 0 ? ((i.venda - i.custo) / i.venda) * 100 : 0;
             tVenda += vTotalItem; tCusto += i.custo * i.qtd;
 
-            // Lógica Curva ABC
             let classeFila = "";
             let etiqueta = "";
             if (lucTotalItem >= 50) {
@@ -277,8 +292,8 @@
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Qtd;Lucro Total;Venda Total\n';
-        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${((i.venda-i.custo)*i.qtd).toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`);
+        let csv = '\uFEFFData;Produto;Motivo;Qtd;Lucro Total;Venda Total\n';
+        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.motivo};${i.qtd};${((i.venda-i.custo)*i.qtd).toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`);
         const link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
         link.download = "souza_farma_relatorio.csv";

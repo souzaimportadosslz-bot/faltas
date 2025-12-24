@@ -12,45 +12,47 @@
         
         /* Login */
         #loginScreen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--dark); }
-        .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 300px; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 320px; border-top: 8px solid var(--primary); }
         
         /* App */
         #mainApp { display: none; padding: 20px; }
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
         header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
-        .logo-img { max-width: 180px; margin-bottom: 10px; }
+        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1px; }
+        .logo-img { max-width: 150px; margin-bottom: 5px; }
         
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card { padding: 15px; border-radius: 8px; color: white; text-align: center; }
         .card-vendas { background: var(--blue); } .card-lucro { background: var(--success); } .card-margem { background: #5e35b1; }
         .card h4 { margin: 0; font-size: 11px; text-transform: uppercase; }
-        .card p { margin: 5px 0 0; font-size: 20px; font-weight: bold; }
+        .card p { margin: 5px 0 0; font-size: 22px; font-weight: bold; }
 
-        .filters { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filters { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border: 1px solid #bbdefb; }
         .form-container { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; }
-        .form-grid { display: grid; grid-template-columns: 2fr 0.8fr 1fr 1fr 1fr 1.2fr auto; gap: 10px; }
+        .form-grid { display: grid; grid-template-columns: 2fr 0.8fr 1fr 1fr 1.2fr 1fr auto; gap: 10px; }
         
-        input, select, button { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; }
-        .btn-add { background: var(--primary); color: white; cursor: pointer; font-weight: bold; border:none; }
+        input, select, button { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
+        .btn-add { background: var(--primary); color: white; cursor: pointer; font-weight: bold; border:none; transition: 0.3s; }
+        .btn-add:hover { background: #b71c1c; }
         .btn-update { background: var(--secondary); color: #333; display: none; cursor: pointer; font-weight: bold; border:none; }
         
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--dark); color: white; padding: 12px; text-align: left; font-size: 12px; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
-        .high-priority { border-left: 5px solid #ff1744; background: #fff5f5; }
-        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; }
-        .badge-red { background: #ff1744; }
+        .high-priority { border-left: 6px solid #ff1744; background: #fff5f5; }
+        .badge-red { background: #ff1744; color: white; padding: 3px 7px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
 
         .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
-        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
 
         @media print {
             .no-print { display: none !important; }
             body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; color: #000 !important; }
-            body.thermal-mode-active .container { width: 70mm !important; padding: 0.5cm !important; margin: 0 !important; }
-            body.thermal-mode-active th, body.thermal-mode-active td { border-bottom: 2px solid #000 !important; }
+            body.thermal-mode-active .container { width: 70mm !important; padding: 0.4cm !important; margin: 0 !important; border: none; }
+            body.thermal-mode-active .nome-farmacia { font-size: 20px !important; }
+            body.thermal-mode-active th, body.thermal-mode-active td { border-bottom: 2px solid #000 !important; padding: 5px 0 !important; }
             @page { margin: 0; }
         }
     </style>
@@ -59,20 +61,21 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <h2 style="color: var(--primary); margin-top: 0;">SOUZA FARMA</h2>
-        <p>Controle de Faltas</p>
-        <input type="password" id="passInput" placeholder="Senha de acesso" style="width: 90%; margin-bottom: 15px;"><br>
-        <button onclick="checkLogin()" class="btn-add" style="width: 100%;">ENTRAR</button>
+        <h1 style="color: var(--primary); margin: 0; font-size: 28px;">SOUZA FARMA</h1>
+        <p style="color: #666; margin-bottom: 25px;">Sistema de Controle de Faltas</p>
+        <input type="password" id="passInput" placeholder="Senha de Acesso" style="width: 90%; margin-bottom: 15px; text-align: center;"><br>
+        <button onclick="checkLogin()" class="btn-add" style="width: 100%; padding: 15px;">ENTRAR NO SISTEMA</button>
     </div>
 </div>
 
 <div id="mainApp">
     <div class="container">
         <header>
-            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img" onerror="this.style.display='none'">
+            <h1 class="nome-farmacia">SOUZA FARMA</h1>
             <div class="info-farma">
-                <strong>Farmácia do Trabalhador</strong> | CNPJ 45.856.880/0001-30<br>
-                Av. José Sarney nº 06, Bom Jesus – São Luís/MA
+                <strong>Farmácia do Trabalhador</strong> | A Neto E Souza – CNPJ 45.856.880/0001-30<br>
+                Av. José Sarney nº 06, Bom Jesus – São Luís/MA | Tel: (98) 98628-7296<br>
+                <small>Cuidando da sua saúde, economia e preço baixo 💊💉</small>
             </div>
         </header>
 
@@ -83,18 +86,18 @@
         </div>
 
         <div class="filters no-print">
-            <strong>Relatório por Período:</strong>
+            <strong>📊 Buscar Período:</strong>
             <input type="date" id="filterStart"> até <input type="date" id="filterEnd">
-            <button onclick="filtrarDados()" style="background: var(--blue); color:white; border:none; cursor:pointer; padding: 10px 20px;">Filtrar</button>
-            <button onclick="carregarTudo()" style="background: #999; color:white; border:none; cursor:pointer;">Ver Tudo</button>
+            <button onclick="filtrarDados()" style="background: var(--blue); color:white; border:none; cursor:pointer;">FILTRAR</button>
+            <button onclick="carregarTudo()" style="background: #78909c; color:white; border:none; cursor:pointer;">VER TUDO</button>
         </div>
 
         <div class="form-container no-print">
             <div class="form-grid">
-                <input type="text" id="desc" placeholder="Medicamento">
-                <input type="number" id="qtd" placeholder="Qtd">
-                <input type="number" id="custo" placeholder="Custo" step="0.01">
-                <input type="number" id="venda" placeholder="Venda" step="0.01">
+                <input type="text" id="desc" placeholder="Nome do Medicamento">
+                <input type="number" id="qtd" placeholder="Qtd" min="1">
+                <input type="number" id="custo" placeholder="Custo Unit." step="0.01">
+                <input type="number" id="venda" placeholder="Venda Unit." step="0.01">
                 <select id="motivo">
                     <option value="Estoque Zerado">Estoque Zerado</option>
                     <option value="Fornecedor Indisponível">Fornecedor Indisponível</option>
@@ -111,11 +114,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Produto/Motivo</th>
+                        <th>Produto / Detalhes</th>
                         <th>Qtd</th>
-                        <th>Preços (U)</th>
+                        <th>Preços (C/V)</th>
                         <th>Lucro</th>
-                        <th>Venda Total</th>
+                        <th>Total Venda</th>
                         <th class="no-print">Ações</th>
                     </tr>
                 </thead>
@@ -150,12 +153,11 @@
     document.getElementById('dataReg').valueAsDate = new Date();
 
     function checkLogin() {
-        const pass = document.getElementById('passInput').value;
-        if(pass === 'farma123') {
+        if(document.getElementById('passInput').value === 'farma123') {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             carregarTudo();
-        } else { alert("Senha incorreta!"); }
+        } else { alert("Acesso Negado!"); }
     }
 
     function adicionarAoFirebase() {
@@ -166,7 +168,7 @@
         const motivo = document.getElementById('motivo').value;
         const data = document.getElementById('dataReg').value;
 
-        if(!desc || !qtd || !venda) return alert("Preencha Medicamento, Qtd e Venda!");
+        if(!desc || isNaN(qtd) || isNaN(venda)) return alert("Preencha Medicamento, Qtd e Venda!");
 
         db.ref('faltas').push({
             desc: desc.toUpperCase(),
@@ -195,22 +197,20 @@
             const vTotal = i.venda * i.qtd;
             const lucItem = (i.venda - i.custo) * i.qtd;
             const margem = i.venda > 0 ? ((i.venda - i.custo) / i.venda) * 100 : 0;
-            
             tVenda += vTotal; tCusto += i.custo * i.qtd;
 
-            let rowClass = lucItem >= 50 ? 'high-priority' : '';
-            let badge = lucItem >= 50 ? '<span class="badge badge-red">Prioridade</span>' : '';
+            let isAltaPerda = lucItem >= 50;
 
             corpo.innerHTML += `
-                <tr class="${rowClass}">
-                    <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small> ${badge}</td>
+                <tr class="${isAltaPerda ? 'high-priority' : ''}">
+                    <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small> ${isAltaPerda ? '<span class="badge-red">Urgente</span>' : ''}</td>
                     <td>${i.qtd}</td>
                     <td>C: ${i.custo.toFixed(2)}<br>V: ${i.venda.toFixed(2)}</td>
                     <td>R$ ${lucItem.toFixed(2)}<br><small>${margem.toFixed(1)}%</small></td>
                     <td><strong>R$ ${vTotal.toFixed(2)}</strong></td>
                     <td class="no-print">
-                        <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none;">✎</button>
-                        <button onclick="removerItem('${i.id}')" style="color:red; cursor:pointer; border:none; background:none; margin-left:10px;">🗑</button>
+                        <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px;">✎</button>
+                        <button onclick="removerItem('${i.id}')" style="color:red; cursor:pointer; border:none; background:none; margin-left:10px; font-size:18px;">🗑</button>
                     </td>
                 </tr>`;
         });
@@ -231,10 +231,9 @@
         document.getElementById('dataReg').value = i.rawDate;
         document.getElementById('motivo').value = i.motivo;
         document.getElementById('editId').value = id;
-        
         document.getElementById('btnAdd').style.display = 'none';
         document.getElementById('btnUpdate').style.display = 'block';
-        window.scrollTo(0,0);
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function salvarEdicaoFirebase() {
@@ -257,31 +256,32 @@
     function filtrarDados() {
         const s = document.getElementById('filterStart').value;
         const e = document.getElementById('filterEnd').value;
-        if(!s || !e) return alert("Selecione as datas!");
+        if(!s || !e) return alert("Selecione o período!");
         renderizar(dadosCompletos.filter(i => i.rawDate >= s && i.rawDate <= e));
     }
 
     function imprimir(formato) {
         if (formato === '70mm') document.body.classList.add('thermal-mode-active');
         else document.body.classList.remove('thermal-mode-active');
-        setTimeout(() => { window.print(); }, 300);
+        setTimeout(() => { window.print(); }, 400);
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Qtd;Lucro;Total Venda\n';
-        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${(i.venda-i.custo).toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`);
+        let csv = '\uFEFFData;Produto;Motivo;Qtd;Lucro;Total Venda\n';
+        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.motivo};${i.qtd};${(i.venda-i.custo).toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`);
         const link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
-        link.download = "souza_farma.csv";
+        link.download = "souza_farma_relatorio.csv";
         link.click();
     }
 
-    function removerItem(id) { if(confirm("Apagar registro?")) db.ref('faltas/' + id).remove(); }
-    function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; }
+    function removerItem(id) { if(confirm("Deseja apagar esse item da nuvem?")) db.ref('faltas/' + id).remove(); }
+    function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; document.getElementById('editId').value=''; }
 
     function enviarWhatsApp() {
-        let msg = `*SOUZA FARMA - FALTAS*%0A%0A`;
+        let msg = `*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A`;
         dadosCompletos.forEach(i => msg += `• ${i.desc} (Qtd: ${i.qtd})%0A`);
+        msg += `%0A_Total Vendas Perdidas: ${document.getElementById('dashVenda').innerText}_`;
         window.open(`https://wa.me/5598986287296?text=${msg}`);
     }
 </script>

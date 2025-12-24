@@ -13,16 +13,19 @@
         :root { --primary: #d32f2f; --secondary: #fbc02d; --success: #2e7d32; --light: #f8f9fa; --blue: #0277bd; --dark: #263238; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #eaeff2; color: #333; }
         
+        /* Login */
         #loginScreen { display: none; align-items: center; justify-content: center; height: 100vh; background: var(--dark); }
         .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 320px; border-top: 8px solid var(--primary); }
         
+        /* App */
         #mainApp { display: none; padding: 20px; }
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
         header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
         .logo-img { max-width: 180px; height: auto; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
-        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; text-transform: uppercase; }
-        
+        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -1px; }
+        .info-farma { font-size: 13px; color: #555; margin-top: 5px; }
+
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card { padding: 15px; border-radius: 8px; color: white; text-align: center; }
         .card-vendas { background: var(--blue); } .card-lucro { background: var(--success); } .card-margem { background: #5e35b1; }
@@ -47,15 +50,20 @@
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
         .high-priority { border-left: 8px solid #ff1744 !important; background: #fff1f1; }
-        .badge-abc { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; }
-        
+        .badge-abc { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; display: inline-block; margin-top: 5px; }
+        .badge-red { background: #ff1744; }
+        .badge-green { background: #00c853; }
+
         .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
         .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
         @media print {
             .no-print { display: none !important; }
-            body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; }
-            body.thermal-mode-active .container { width: 70mm !important; padding: 0.5cm !important; margin: 0 !important; }
+            body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; color: #000 !important; }
+            body.thermal-mode-active .container { width: 70mm !important; padding: 0.5cm !important; margin: 0 !important; border: none; }
+            body.thermal-mode-active * { font-weight: 900 !important; }
+            body.thermal-mode-active th, body.thermal-mode-active td { border-bottom: 2px solid #000 !important; }
+            @page { margin: 0; }
         }
     </style>
 </head>
@@ -63,7 +71,8 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <h1 style="color: var(--primary); margin: 0; font-size: 28px;">SOUZA FARMA</h1>
+        <img src="Souza-Farma-logomarca.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+        <h1 style="color: var(--primary); margin: 10px 0; font-size: 24px;">SOUZA FARMA</h1>
         <input type="password" id="passInput" placeholder="Senha" style="width: 80%; margin-top: 15px; text-align: center;"><br>
         <button onclick="checkLogin()" class="btn-add" style="width: 100%; margin-top: 15px;">ENTRAR</button>
     </div>
@@ -72,14 +81,19 @@
 <div id="mainApp">
     <div class="container">
         <header>
+            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img">
             <h1 class="nome-farmacia">SOUZA FARMA</h1>
-            <p style="font-size: 12px; color: #666;">Relatório em Nuvem Real-time</p>
+            <div class="info-farma">
+                <strong>Farmácia do Trabalhador</strong> | CNPJ 45.856.880/0001-30<br>
+                Av. José Sarney nº 06, Bom Jesus – São Luís/MA<br>
+                <small>Cuidando da sua saúde, economia e preço baixo 💊💉</small>
+            </div>
         </header>
 
         <div class="dashboard no-print">
-            <div class="card card-vendas"><h4>Perda Bruta</h4><p id="dashVenda">R$ 0,00</p></div>
-            <div class="card card-lucro"><h4>Lucro Cessante</h4><p id="dashLucro">R$ 0,00</p></div>
-            <div class="card card-margem"><h4>Margem</h4><p id="dashMargem">0%</p></div>
+            <div class="card card-vendas"><h4>Vendas Perdidas</h4><p id="dashVenda">R$ 0,00</p></div>
+            <div class="card card-lucro"><h4>Lucro Perdido</h4><p id="dashLucro">R$ 0,00</p></div>
+            <div class="card card-margem"><h4>Margem Média</h4><p id="dashMargem">0%</p></div>
         </div>
 
         <div class="charts-row no-print">
@@ -88,8 +102,8 @@
         </div>
 
         <div class="tabs no-print">
-            <button class="tab-btn active" id="btnTabFaltas" onclick="switchTab('faltas')">🛒 Faltas</button>
-            <button class="tab-btn" id="btnTabHist" onclick="switchTab('historico')">✅ Histórico</button>
+            <button class="tab-btn active" id="btnTabFaltas" onclick="switchTab('faltas')">🛒 Faltas Atuais</button>
+            <button class="tab-btn" id="btnTabHist" onclick="switchTab('historico')">✅ Histórico Compras</button>
         </div>
 
         <div id="areaFaltas">
@@ -111,7 +125,7 @@
                 <input type="hidden" id="editId">
             </div>
             <table>
-                <thead><tr><th>Produto</th><th>Qtd</th><th>Preços</th><th>Lucro Total</th><th>Total</th><th class="no-print">Ações</th></tr></thead>
+                <thead><tr><th>Produto / Detalhes</th><th>Qtd</th><th>Custo/Venda</th><th>Lucro Total (%)</th><th>Venda Total</th><th class="no-print">Ações</th></tr></thead>
                 <tbody id="corpoTabela"></tbody>
             </table>
         </div>
@@ -124,11 +138,11 @@
         </div>
 
         <div class="footer-controls no-print">
-            <button class="btn-action" style="background:#d32f2f" onclick="gerarPDF()">📑 PDF</button>
+            <button class="btn-action" style="background:#d32f2f" onclick="gerarPDF()">📑 GERAR PDF</button>
             <button class="btn-action" style="background:#1565c0" onclick="exportarExcel()">📊 EXCEL</button>
             <button class="btn-action" style="background:#263238" onclick="imprimir('70mm')">🧾 TÉRMICA</button>
             <button class="btn-action" style="background:#25d366" onclick="enviarWhatsApp()">📲 WHATSAPP</button>
-            <button class="btn-action" style="background:#757575" onclick="logout()">🔒 SAIR</button>
+            <button class="btn-action" style="background:#f44336" onclick="logout()">🔒 SAIR</button>
         </div>
     </div>
 </div>
@@ -159,6 +173,7 @@
 
     function checkLogin() { if(document.getElementById('passInput').value === 'farma123') { sessionStorage.setItem('logado', 'true'); location.reload(); } else alert("Senha Incorreta!"); }
     function logout() { sessionStorage.removeItem('logado'); location.reload(); }
+    
     function switchTab(t) {
         document.getElementById('areaFaltas').style.display = t === 'faltas' ? 'block' : 'none';
         document.getElementById('areaHistorico').style.display = t === 'historico' ? 'block' : 'none';
@@ -184,22 +199,32 @@
         [...dados].reverse().forEach(i => {
             const lucroT = (i.venda - i.custo) * i.qtd;
             const totalV = i.venda * i.qtd;
+            const margemUnit = i.venda > 0 ? ((i.venda - i.custo) / i.venda) * 100 : 0;
 
             if(!i.comprado) {
                 tV += totalV; tL += lucroT;
-                let abc = lucroT >= 50 ? 'high-priority' : '';
-                corpo.innerHTML += `<tr class="${abc}">
-                    <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small></td>
+                let classeABC = "";
+                let etiqueta = "";
+                if (lucroT >= 50) {
+                    classeABC = "high-priority";
+                    etiqueta = '<span class="badge-abc badge-red">ALTA PERDA</span>';
+                } else if (margemUnit >= 35) {
+                    classeABC = "high-margin";
+                    etiqueta = '<span class="badge-abc badge-green">ALTA MARGEM</span>';
+                }
+
+                corpo.innerHTML += `<tr class="${classeABC}">
+                    <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small><br>${etiqueta}</td>
                     <td>${i.qtd}</td>
-                    <td>C: ${i.custo.toFixed(2)} | V: ${i.venda.toFixed(2)}</td>
-                    <td>R$ ${lucroT.toFixed(2)}</td>
+                    <td>C: ${i.custo.toFixed(2)} / V: ${i.venda.toFixed(2)}</td>
+                    <td>R$ ${lucroT.toFixed(2)}<br><small>${margemUnit.toFixed(1)}%</small></td>
                     <td><strong>R$ ${totalV.toFixed(2)}</strong></td>
                     <td class="no-print">
-                        <button onclick="marcarComprado('${i.id}')">✅</button>
-                        <button onclick="editarItem('${i.id}')" style="margin-left:5px">✎</button>
+                        <button title="Comprado" onclick="marcarComprado('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px;">✅</button>
+                        <button title="Editar" onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px; margin-left:8px;">✎</button>
+                        <button title="Remover" onclick="removerItem('${i.id}')" style="cursor:pointer; border:none; background:none; color:red; font-size:18px; margin-left:8px;">🗑</button>
                     </td></tr>`;
             } else {
-                // LÓGICA DE PREÇO MÉDIO/VARIAÇÃO
                 const comprasAnteriores = dados.filter(x => x.desc === i.desc && x.comprado && x.id !== i.id);
                 let trend = "–";
                 if(comprasAnteriores.length > 0) {
@@ -211,32 +236,12 @@
                     <td>${i.data}</td>
                     <td>${i.dataCompra}</td>
                     <td>R$ ${i.custo.toFixed(2)} ${trend}</td>
-                    <td><button onclick="estornar('${i.id}')" style="font-size:10px">↩ REVERTER</button></td></tr>`;
+                    <td><button onclick="estornar('${i.id}')" style="background:#607d8b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">↩ Estornar</button></td></tr>`;
             }
         });
         document.getElementById('dashVenda').innerText = `R$ ${tV.toFixed(2)}`;
         document.getElementById('dashLucro').innerText = `R$ ${tL.toFixed(2)}`;
         document.getElementById('dashMargem').innerText = tV > 0 ? ((tL/tV)*100).toFixed(1) + "%" : "0%";
-    }
-
-    function atualizarGraficos() {
-        // Gráfico de Barras (Evolução)
-        const dias = {};
-        dados.filter(i => !i.comprado).forEach(i => dias[i.data] = (dias[i.data] || 0) + (i.venda * i.qtd));
-        const labels = Object.keys(dias).slice(-7);
-        if(barChart) barChart.destroy();
-        barChart = new Chart(document.getElementById('graficoBarras'), {
-            type: 'bar', data: { labels, datasets: [{label: 'Perda R$', data: labels.map(l => dias[l]), backgroundColor: '#d32f2f'}]}
-        });
-
-        // Gráfico de Pizza (Motivos)
-        const m = { 'Estoque Zerado': 0, 'Fornecedor Indisponível': 0, 'Produto Novo': 0 };
-        dados.filter(i => !i.comprado).forEach(i => m[i.motivo]++);
-        if(pieChart) pieChart.destroy();
-        pieChart = new Chart(document.getElementById('graficoPizza'), {
-            type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#0277bd', '#fbc02d', '#2e7d32']}]},
-            options: { plugins: { legend: { position: 'bottom' } } }
-        });
     }
 
     function adicionarAoFirebase() {
@@ -251,33 +256,86 @@
             data: document.getElementById('dataReg').value.split('-').reverse().join('/'),
             comprado: false
         });
-        document.getElementById('desc').value=''; document.getElementById('qtd').value='';
+        limparCampos();
+    }
+
+    function editarItem(id) {
+        const i = dados.find(x => x.id === id);
+        document.getElementById('desc').value = i.desc;
+        document.getElementById('qtd').value = i.qtd;
+        document.getElementById('custo').value = i.custo;
+        document.getElementById('venda').value = i.venda;
+        document.getElementById('dataReg').value = i.rawDate;
+        document.getElementById('editId').value = id;
+        document.getElementById('btnAdd').style.display = 'none';
+        document.getElementById('btnUpdate').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function salvarEdicaoFirebase() {
+        const id = document.getElementById('editId').value;
+        const dt = document.getElementById('dataReg').value;
+        db.ref('faltas/'+id).update({
+            desc: document.getElementById('desc').value.toUpperCase(),
+            qtd: parseFloat(document.getElementById('qtd').value),
+            custo: parseFloat(document.getElementById('custo').value),
+            venda: parseFloat(document.getElementById('venda').value),
+            rawDate: dt, data: dt.split('-').reverse().join('/')
+        });
+        document.getElementById('btnAdd').style.display = 'block';
+        document.getElementById('btnUpdate').style.display = 'none';
+        limparCampos();
     }
 
     function marcarComprado(id) { db.ref('faltas/'+id).update({comprado:true, dataCompra: new Date().toLocaleDateString('pt-BR')}); }
     function estornar(id) { db.ref('faltas/'+id).update({comprado:false, dataCompra:null}); }
-    
+    function removerItem(id) { if(confirm("Apagar permanentemente?")) db.ref('faltas/'+id).remove(); }
+    function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; document.getElementById('editId').value=''; }
+
+    function atualizarGraficos() {
+        const dias = {};
+        dados.filter(i => !i.comprado).forEach(i => dias[i.data] = (dias[i.data] || 0) + (i.venda * i.qtd));
+        const labels = Object.keys(dias).slice(-7);
+        if(barChart) barChart.destroy();
+        barChart = new Chart(document.getElementById('graficoBarras'), {
+            type: 'bar', data: { labels, datasets: [{label: 'Perda Diária R$', data: labels.map(l => dias[l]), backgroundColor: '#d32f2f'}]}
+        });
+
+        const m = { 'Estoque Zerado': 0, 'Fornecedor Indisponível': 0, 'Produto Novo': 0 };
+        dados.filter(i => !i.comprado).forEach(i => m[i.motivo]++);
+        if(pieChart) pieChart.destroy();
+        pieChart = new Chart(document.getElementById('graficoPizza'), {
+            type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#0277bd', '#fbc02d', '#2e7d32']}]},
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
     function gerarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("SOUZA FARMA - RELATÓRIO DE GESTÃO", 14, 15);
-        const rows = dados.filter(i => !i.comprado).map(i => [i.desc, i.qtd, i.data, i.motivo, 'R$ '+ (i.venda*i.qtd).toFixed(2)]);
-        doc.autoTable({ head: [['Produto', 'Qtd', 'Data', 'Motivo', 'Total']], body: rows, startY: 25 });
-        doc.save("relatorio_souza_farma.pdf");
+        doc.setFontSize(20); doc.setTextColor(211, 47, 47);
+        doc.text("SOUZA FARMA - RELATÓRIO DE GESTÃO", 14, 20);
+        doc.setFontSize(10); doc.setTextColor(100);
+        doc.text("Cuidando da sua saúde, economia e preço baixo", 14, 28);
+        const rows = dados.filter(i => !i.comprado).map(i => [i.data, i.desc, i.qtd, i.motivo, 'R$ '+ (i.venda*i.qtd).toFixed(2)]);
+        doc.autoTable({ head: [['Data', 'Produto', 'Qtd', 'Motivo', 'Total']], body: rows, startY: 35, headStyles: {fillColor: [38, 50, 56]} });
+        doc.save("souza_farma_relatorio.pdf");
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Motivo\n';
-        dados.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${i.custo};${i.venda};${i.motivo}\n`);
+        let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Lucro;Status\n';
+        dados.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${i.custo};${i.venda};${(i.venda-i.custo).toFixed(2)};${i.comprado ? 'Comprado':'Falta'}\n`);
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+        link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
         link.download = "souza_farma.csv"; link.click();
     }
 
     function imprimir(f) { if(f==='70mm') document.body.classList.add('thermal-mode-active'); setTimeout(() => { window.print(); document.body.classList.remove('thermal-mode-active'); }, 500); }
+    
     function enviarWhatsApp() {
-        let m = "*SOUZA FARMA - FALTAS ATUAIS*%0A";
-        dados.filter(i => !i.comprado).forEach(i => m += `• ${i.desc} (${i.qtd})%0A`);
+        let m = "*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A";
+        dados.filter(i => !i.comprado).forEach(i => m += `• ${i.desc} (Qtd: ${i.qtd})%0A`);
+        m += `%0A*Perda Estimada: ${document.getElementById('dashVenda').innerText}*`;
         window.open(`https://wa.me/5598986287296?text=${m}`);
     }
 </script>

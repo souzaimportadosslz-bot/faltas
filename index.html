@@ -33,21 +33,21 @@
         .btn-update { background: var(--secondary); display: none; cursor: pointer; font-weight: bold; border:none; }
         
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background: #37474f; color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
+        th { background: #37474f; color: white; padding: 12px; text-align: left; font-size: 12px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
         .txt-custo { font-size: 11px; color: #777; display: block; }
+        .txt-lucro-item { font-size: 12px; color: var(--success); font-weight: bold; }
 
         .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
         .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* Estilo Térmico 70mm */
         @media print {
             .no-print { display: none !important; }
             body.thermal-mode-active { background: white; margin: 0; padding: 0; width: 70mm; font-family: "Arial Black", Gadget, sans-serif !important; color: #000 !important; }
             body.thermal-mode-active .container { width: 70mm !important; padding: 0.5cm !important; margin: 0 !important; box-shadow: none !important; border: none !important; }
             body.thermal-mode-active * { color: #000 !important; font-weight: 900 !important; }
-            body.thermal-mode-active table { font-size: 12px !important; }
-            body.thermal-mode-active th, body.thermal-mode-active td { padding: 5px 0 !important; border-bottom: 2px solid #000 !important; }
+            body.thermal-mode-active table { font-size: 11px !important; }
+            body.thermal-mode-active th, body.thermal-mode-active td { padding: 4px 0 !important; border-bottom: 2px solid #000 !important; }
             @page { margin: 0; }
         }
     </style>
@@ -92,6 +92,7 @@
                     <th>Data/Produto</th>
                     <th>Qtd</th>
                     <th>Preços (Unit.)</th>
+                    <th>Lucro (Unit.)</th>
                     <th>Total (Venda)</th>
                     <th class="no-print">Ações</th>
                 </tr>
@@ -99,8 +100,8 @@
             <tbody id="corpoTabela"></tbody>
             <tfoot>
                 <tr style="border-top: 3px solid #000;">
-                    <td colspan="3" align="right"><strong>TOTAL EM VENDAS PERDIDAS:</strong></td>
-                    <td id="totalFinalTabela" style="font-weight: bold;">R$ 0,00</td>
+                    <td colspan="4" align="right"><strong>TOTAL EM VENDAS:</strong></td>
+                    <td id="totalFinalTabela" style="font-weight: bold; font-size: 16px;">R$ 0,00</td>
                     <td class="no-print"></td>
                 </tr>
             </tfoot>
@@ -108,10 +109,10 @@
     </div>
 
     <div class="footer-controls no-print">
-        <button class="btn-action" style="background:#455a64" onclick="imprimir('A4')">🖨️ IMPRIMIR A4</button>
-        <button class="btn-action" style="background:#263238" onclick="imprimir('70mm')">🧾 TÉRMICA 70mm</button>
+        <button class="btn-action" style="background:#455a64" onclick="imprimir('A4')">🖨️ A4</button>
+        <button class="btn-action" style="background:#263238" onclick="imprimir('70mm')">🧾 70mm</button>
         <button class="btn-action" style="background:#25d366" onclick="enviarWhatsApp()">📲 WHATSAPP</button>
-        <button class="btn-action" style="background:#1565c0" onclick="exportarExcel()">📊 EXCEL (CSV)</button>
+        <button class="btn-action" style="background:#1565c0" onclick="exportarExcel()">📊 EXCEL</button>
     </div>
 </div>
 
@@ -128,7 +129,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let dadosAtuais = []; // Variável global para facilitar exportação e WhatsApp
+    let dadosAtuais = [];
     document.getElementById('dataReg').valueAsDate = new Date();
 
     function adicionarAoFirebase() {
@@ -138,7 +139,7 @@
         const venda = parseFloat(document.getElementById('venda').value) || 0;
         const data = document.getElementById('dataReg').value;
 
-        if(!desc || !qtd || !venda) return alert("Preencha os campos!");
+        if(!desc || !qtd || !venda) return alert("Preencha Medicamento, Qtd e Venda!");
 
         db.ref('faltas').push({
             desc: desc.toUpperCase(),
@@ -161,9 +162,11 @@
         corpo.innerHTML = '';
         let tVenda = 0, tCusto = 0;
 
-        // Inverte a lista para mostrar os mais recentes no topo
         [...lista].reverse().forEach(i => {
             const vendaTotalItem = i.venda * i.qtd;
+            const lucroUnit = i.venda - i.custo;
+            const margemUnit = i.venda > 0 ? (lucroUnit / i.venda) * 100 : 0;
+            
             tVenda += vendaTotalItem;
             tCusto += i.custo * i.qtd;
 
@@ -172,10 +175,14 @@
                     <td><small>${i.data}</small><br><strong>${i.desc}</strong></td>
                     <td>${i.qtd}</td>
                     <td>
-                        <span class="txt-custo">Custo: R$ ${i.custo.toFixed(2)}</span>
-                        Venda: R$ ${i.venda.toFixed(2)}
+                        <span class="txt-custo">C: R$ ${i.custo.toFixed(2)}</span>
+                        V: R$ ${i.venda.toFixed(2)}
                     </td>
-                    <td>R$ ${vendaTotalItem.toFixed(2)}</td>
+                    <td>
+                        <span class="txt-lucro-item">R$ ${lucroUnit.toFixed(2)}</span><br>
+                        <small>${margemUnit.toFixed(1)}%</small>
+                    </td>
+                    <td><strong>R$ ${vendaTotalItem.toFixed(2)}</strong></td>
                     <td class="no-print">
                         <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none;">✎</button>
                         <button onclick="removerItem('${i.id}')" style="color:red; cursor:pointer; border:none; background:none; margin-left:10px;">🗑</button>
@@ -239,27 +246,31 @@
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Qtd;Custo Unit;Venda Unit;Total Venda\n';
+        let csv = '\uFEFFData;Produto;Qtd;Custo Unit;Venda Unit;Lucro Unit;Margem %;Total Venda\n';
         dadosAtuais.forEach(i => {
-            csv += `${i.data};${i.desc};${i.qtd};${i.custo.toFixed(2)};${i.venda.toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`;
+            let lucro = i.venda - i.custo;
+            let marg = i.venda > 0 ? (lucro/i.venda)*100 : 0;
+            csv += `${i.data};${i.desc};${i.qtd};${i.custo.toFixed(2)};${i.venda.toFixed(2)};${lucro.toFixed(2)};${marg.toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "souza_farma_faltas.csv";
+        link.download = "souza_farma_completo.csv";
         link.click();
     }
 
     function enviarWhatsApp() {
         let msg = `*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A`;
         dadosAtuais.forEach(i => {
-            msg += `• ${i.desc}%0A  Qtd: ${i.qtd} | Venda: R$ ${(i.venda * i.qtd).toFixed(2)}%0A`;
+            let lucroItem = (i.venda - i.custo);
+            let margItem = i.venda > 0 ? (lucroItem/i.venda)*100 : 0;
+            msg += `• *${i.desc}*%0A  Qtd: ${i.qtd} | Venda: R$ ${i.venda.toFixed(2)}%0A  Lucro: R$ ${lucroItem.toFixed(2)} (${margItem.toFixed(1)}%)%0A`;
         });
         msg += `%0A*RESUMO GERAL:*%0A`;
         msg += `Total Perdido: ${document.getElementById('dashVenda').innerText}%0A`;
         msg += `Lucro Perdido: ${document.getElementById('dashLucro').innerText}%0A`;
         msg += `Margem Média: ${document.getElementById('dashMargem').innerText}%0A%0A`;
-        msg += `_Cuidando da sua saúde, economia e preço baixo._`;
+        msg += `_Gerado pelo Sistema Souza Farma_`;
         window.open(`https://wa.me/5598986287296?text=${msg}`);
     }
 </script>

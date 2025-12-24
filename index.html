@@ -11,22 +11,20 @@
     <style>
         :root { --primary: #d32f2f; --secondary: #fbc02d; --success: #2e7d32; --light: #f8f9fa; --blue: #0277bd; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #eaeff2; color: #333; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
         header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
         header h1 { margin: 0; color: var(--primary); text-transform: uppercase; font-size: 24px; }
         .info-farma { font-size: 13px; color: #555; margin-top: 5px; }
 
-        /* Dashboard de Lucros */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .card { padding: 15px; border-radius: 8px; color: white; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .card { padding: 15px; border-radius: 8px; color: white; text-align: center; }
         .card-vendas { background: var(--blue); }
         .card-lucro { background: var(--success); }
         .card-margem { background: #5e35b1; }
         .card h4 { margin: 0; font-size: 11px; text-transform: uppercase; opacity: 0.9; }
         .card p { margin: 5px 0 0; font-size: 20px; font-weight: bold; }
 
-        /* Formulário */
         .form-container { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; }
         .form-grid { display: grid; grid-template-columns: 2fr 0.8fr 1fr 1fr 1.2fr auto; gap: 10px; }
         input, button { padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
@@ -34,48 +32,23 @@
         .btn-add { background: var(--primary); color: white; cursor: pointer; font-weight: bold; border:none; }
         .btn-update { background: var(--secondary); display: none; cursor: pointer; font-weight: bold; border:none; }
         
-        /* Tabela Visual */
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th { background: #37474f; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
-        tr:hover { background-color: #f1f1f1; }
+        .txt-custo { font-size: 11px; color: #777; display: block; }
 
-        .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; }
-        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-action:hover { opacity: 0.8; }
+        .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
+        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* ================= AJUSTE TÉRMICO 70mm (LETRAS VIVAS) ================= */
+        /* Estilo Térmico 70mm */
         @media print {
             .no-print { display: none !important; }
-            
-            body.thermal-mode-active {
-                background: white; margin: 0; padding: 0; width: 70mm;
-                font-family: "Arial Black", Gadget, sans-serif !important; 
-                color: #000 !important;
-            }
-
-            body.thermal-mode-active .container {
-                width: 70mm !important; max-width: 70mm !important;
-                padding: 0.5cm !important; margin: 0 !important;
-                box-shadow: none !important; border: none !important;
-            }
-
-            body.thermal-mode-active * {
-                color: #000 !important; 
-                font-weight: 900 !important; /* Força queima total do papel */
-            }
-
-            body.thermal-mode-active table { font-size: 12px !important; width: 100% !important; }
-            body.thermal-mode-active th, body.thermal-mode-active td {
-                padding: 5px 0 !important;
-                border-bottom: 2px solid #000 !important; /* Linha divisória bem visível */
-            }
-
-            body.thermal-mode-active header h1 { font-size: 18px !important; }
-            body.thermal-mode-active .info-farma { font-size: 10px !important; }
-
+            body.thermal-mode-active { background: white; margin: 0; padding: 0; width: 70mm; font-family: "Arial Black", Gadget, sans-serif !important; color: #000 !important; }
+            body.thermal-mode-active .container { width: 70mm !important; padding: 0.5cm !important; margin: 0 !important; box-shadow: none !important; border: none !important; }
+            body.thermal-mode-active * { color: #000 !important; font-weight: 900 !important; }
+            body.thermal-mode-active table { font-size: 12px !important; }
+            body.thermal-mode-active th, body.thermal-mode-active td { padding: 5px 0 !important; border-bottom: 2px solid #000 !important; }
             @page { margin: 0; }
-            body.thermal-mode-active @page { size: 70mm auto; }
         }
     </style>
 </head>
@@ -90,10 +63,6 @@
             Av. José Sarney nº 06, Bom Jesus – São Luís/MA
         </div>
     </header>
-
-    <div id="loader" class="no-print" style="text-align:center; padding:10px; color:var(--blue); font-weight: bold;">
-        Carregando dados da Nuvem Souza Farma...
-    </div>
 
     <div class="no-print">
         <div class="dashboard">
@@ -122,15 +91,16 @@
                 <tr>
                     <th>Data/Produto</th>
                     <th>Qtd</th>
-                    <th>Preço Venda</th>
+                    <th>Preços (Unit.)</th>
+                    <th>Total (Venda)</th>
                     <th class="no-print">Ações</th>
                 </tr>
             </thead>
             <tbody id="corpoTabela"></tbody>
             <tfoot>
                 <tr style="border-top: 3px solid #000;">
-                    <td colspan="2" align="right"><strong>TOTAL EM VENDAS:</strong></td>
-                    <td id="totalFinalTabela" style="font-weight: bold; color: #000;">R$ 0,00</td>
+                    <td colspan="3" align="right"><strong>TOTAL EM VENDAS PERDIDAS:</strong></td>
+                    <td id="totalFinalTabela" style="font-weight: bold;">R$ 0,00</td>
                     <td class="no-print"></td>
                 </tr>
             </tfoot>
@@ -141,11 +111,11 @@
         <button class="btn-action" style="background:#455a64" onclick="imprimir('A4')">🖨️ IMPRIMIR A4</button>
         <button class="btn-action" style="background:#263238" onclick="imprimir('70mm')">🧾 TÉRMICA 70mm</button>
         <button class="btn-action" style="background:#25d366" onclick="enviarWhatsApp()">📲 WHATSAPP</button>
+        <button class="btn-action" style="background:#1565c0" onclick="exportarExcel()">📊 EXCEL (CSV)</button>
     </div>
 </div>
 
 <script>
-    // Configurações do seu Firebase vinculadas com sucesso
     const firebaseConfig = {
         apiKey: "AIzaSyC5-jTow8lk34iaKFhuSmJ8c1QpgoExOfE",
         authDomain: "souza-farma-8d08d.firebaseapp.com",
@@ -158,9 +128,9 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    let dadosAtuais = []; // Variável global para facilitar exportação e WhatsApp
     document.getElementById('dataReg').valueAsDate = new Date();
 
-    // Salvar Dados
     function adicionarAoFirebase() {
         const desc = document.getElementById('desc').value;
         const qtd = parseFloat(document.getElementById('qtd').value);
@@ -168,7 +138,7 @@
         const venda = parseFloat(document.getElementById('venda').value) || 0;
         const data = document.getElementById('dataReg').value;
 
-        if(!desc || !qtd || !venda) return alert("Por favor, preencha o Medicamento, Quantidade e Valor de Venda.");
+        if(!desc || !qtd || !venda) return alert("Preencha os campos!");
 
         db.ref('faltas').push({
             desc: desc.toUpperCase(),
@@ -180,12 +150,10 @@
         limparCampos();
     }
 
-    // Monitorar Nuvem em Tempo Real
     db.ref('faltas').on('value', (snapshot) => {
-        document.getElementById('loader').style.display = 'none';
-        const lista = [];
-        snapshot.forEach((item) => { lista.push({ id: item.key, ...item.val() }); });
-        renderizar(lista);
+        dadosAtuais = [];
+        snapshot.forEach((item) => { dadosAtuais.push({ id: item.key, ...item.val() }); });
+        renderizar(dadosAtuais);
     });
 
     function renderizar(lista) {
@@ -193,8 +161,8 @@
         corpo.innerHTML = '';
         let tVenda = 0, tCusto = 0;
 
-        // Mostrar os mais novos primeiro
-        lista.reverse().forEach(i => {
+        // Inverte a lista para mostrar os mais recentes no topo
+        [...lista].reverse().forEach(i => {
             const vendaTotalItem = i.venda * i.qtd;
             tVenda += vendaTotalItem;
             tCusto += i.custo * i.qtd;
@@ -203,6 +171,10 @@
                 <tr>
                     <td><small>${i.data}</small><br><strong>${i.desc}</strong></td>
                     <td>${i.qtd}</td>
+                    <td>
+                        <span class="txt-custo">Custo: R$ ${i.custo.toFixed(2)}</span>
+                        Venda: R$ ${i.venda.toFixed(2)}
+                    </td>
                     <td>R$ ${vendaTotalItem.toFixed(2)}</td>
                     <td class="no-print">
                         <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none;">✎</button>
@@ -221,18 +193,16 @@
     }
 
     function editarItem(id) {
-        db.ref('faltas/' + id).once('value', (s) => {
-            const i = s.val();
-            document.getElementById('desc').value = i.desc;
-            document.getElementById('qtd').value = i.qtd;
-            document.getElementById('custo').value = i.custo;
-            document.getElementById('venda').value = i.venda;
-            document.getElementById('dataReg').value = i.rawDate;
-            document.getElementById('editId').value = id;
-            document.getElementById('btnAdd').style.display = 'none';
-            document.getElementById('btnUpdate').style.display = 'block';
-            window.scrollTo(0,0);
-        });
+        const i = dadosAtuais.find(x => x.id === id);
+        document.getElementById('desc').value = i.desc;
+        document.getElementById('qtd').value = i.qtd;
+        document.getElementById('custo').value = i.custo;
+        document.getElementById('venda').value = i.venda;
+        document.getElementById('dataReg').value = i.rawDate;
+        document.getElementById('editId').value = id;
+        document.getElementById('btnAdd').style.display = 'none';
+        document.getElementById('btnUpdate').style.display = 'block';
+        window.scrollTo(0,0);
     }
 
     function salvarEdicaoFirebase() {
@@ -252,20 +222,13 @@
     }
 
     function removerItem(id) {
-        if(confirm("Deseja apagar esse registro da nuvem?")) db.ref('faltas/' + id).remove();
+        if(confirm("Deseja apagar esse registro?")) db.ref('faltas/' + id).remove();
     }
 
     function imprimir(formato) {
-        if (formato === '70mm') {
-            document.body.classList.add('thermal-mode-active');
-        } else {
-            document.body.classList.remove('thermal-mode-active');
-        }
-        
-        setTimeout(() => {
-            window.print();
-            setTimeout(()=> document.body.classList.remove('thermal-mode-active'), 1000);
-        }, 400);
+        if (formato === '70mm') document.body.classList.add('thermal-mode-active');
+        else document.body.classList.remove('thermal-mode-active');
+        setTimeout(() => { window.print(); }, 300);
     }
 
     function limparCampos() {
@@ -275,14 +238,27 @@
         document.getElementById('venda').value = '';
     }
 
+    function exportarExcel() {
+        let csv = '\uFEFFData;Produto;Qtd;Custo Unit;Venda Unit;Total Venda\n';
+        dadosAtuais.forEach(i => {
+            csv += `${i.data};${i.desc};${i.qtd};${i.custo.toFixed(2)};${i.venda.toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "souza_farma_faltas.csv";
+        link.click();
+    }
+
     function enviarWhatsApp() {
-        const venda = document.getElementById('dashVenda').innerText;
-        const lucro = document.getElementById('dashLucro').innerText;
-        const margem = document.getElementById('dashMargem').innerText;
-        let msg = `*SOUZA FARMA - RELATÓRIO DE PERDAS*%0A%0A`;
-        msg += `Total Perdido: ${venda}%0A`;
-        msg += `Lucro Deixado de Ganhar: ${lucro}%0A`;
-        msg += `Margem Média: ${margem}%0A%0A`;
+        let msg = `*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A`;
+        dadosAtuais.forEach(i => {
+            msg += `• ${i.desc}%0A  Qtd: ${i.qtd} | Venda: R$ ${(i.venda * i.qtd).toFixed(2)}%0A`;
+        });
+        msg += `%0A*RESUMO GERAL:*%0A`;
+        msg += `Total Perdido: ${document.getElementById('dashVenda').innerText}%0A`;
+        msg += `Lucro Perdido: ${document.getElementById('dashLucro').innerText}%0A`;
+        msg += `Margem Média: ${document.getElementById('dashMargem').innerText}%0A%0A`;
         msg += `_Cuidando da sua saúde, economia e preço baixo._`;
         window.open(`https://wa.me/5598986287296?text=${msg}`);
     }

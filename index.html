@@ -19,8 +19,8 @@
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
         header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
-        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1px; }
-        .logo-img { max-width: 150px; margin-bottom: 5px; }
+        .logo-img { max-width: 200px; height: auto; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1px; text-transform: uppercase; }
         
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card { padding: 15px; border-radius: 8px; color: white; text-align: center; }
@@ -34,7 +34,6 @@
         
         input, select, button { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
         .btn-add { background: var(--primary); color: white; cursor: pointer; font-weight: bold; border:none; transition: 0.3s; }
-        .btn-add:hover { background: #b71c1c; }
         .btn-update { background: var(--secondary); color: #333; display: none; cursor: pointer; font-weight: bold; border:none; }
         
         table { width: 100%; border-collapse: collapse; }
@@ -51,8 +50,8 @@
             .no-print { display: none !important; }
             body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; color: #000 !important; }
             body.thermal-mode-active .container { width: 70mm !important; padding: 0.4cm !important; margin: 0 !important; border: none; }
-            body.thermal-mode-active .nome-farmacia { font-size: 20px !important; }
-            body.thermal-mode-active th, body.thermal-mode-active td { border-bottom: 2px solid #000 !important; padding: 5px 0 !important; }
+            body.thermal-mode-active .logo-img { max-width: 50mm !important; }
+            body.thermal-mode-active .nome-farmacia { font-size: 18px !important; }
             @page { margin: 0; }
         }
     </style>
@@ -61,32 +60,33 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <h1 style="color: var(--primary); margin: 0; font-size: 28px;">SOUZA FARMA</h1>
-        <p style="color: #666; margin-bottom: 25px;">Sistema de Controle de Faltas</p>
+        <img src="Souza-Farma-logomarca.png" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/150?text=SOUZA+FARMA'">
+        <h1 style="color: var(--primary); margin: 10px 0; font-size: 24px;">SOUZA FARMA</h1>
         <input type="password" id="passInput" placeholder="Senha de Acesso" style="width: 90%; margin-bottom: 15px; text-align: center;"><br>
-        <button onclick="checkLogin()" class="btn-add" style="width: 100%; padding: 15px;">ENTRAR NO SISTEMA</button>
+        <button onclick="checkLogin()" class="btn-add" style="width: 100%; padding: 15px;">ENTRAR</button>
     </div>
 </div>
 
 <div id="mainApp">
     <div class="container">
         <header>
+            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img" id="headerLogo">
             <h1 class="nome-farmacia">SOUZA FARMA</h1>
             <div class="info-farma">
                 <strong>Farmácia do Trabalhador</strong> | A Neto E Souza – CNPJ 45.856.880/0001-30<br>
-                Av. José Sarney nº 06, Bom Jesus – São Luís/MA | Tel: (98) 98628-7296<br>
+                Av. José Sarney nº 06, Bom Jesus – São Luís/MA<br>
                 <small>Cuidando da sua saúde, economia e preço baixo 💊💉</small>
             </div>
         </header>
 
-        <div class="dashboard">
+        <div class="dashboard no-print">
             <div class="card card-vendas"><h4>Vendas Perdidas</h4><p id="dashVenda">R$ 0,00</p></div>
             <div class="card card-lucro"><h4>Lucro Perdido</h4><p id="dashLucro">R$ 0,00</p></div>
             <div class="card card-margem"><h4>Margem Média</h4><p id="dashMargem">0.00%</p></div>
         </div>
 
         <div class="filters no-print">
-            <strong>📊 Buscar Período:</strong>
+            <strong>📅 Período:</strong>
             <input type="date" id="filterStart"> até <input type="date" id="filterEnd">
             <button onclick="filtrarDados()" style="background: var(--blue); color:white; border:none; cursor:pointer;">FILTRAR</button>
             <button onclick="carregarTudo()" style="background: #78909c; color:white; border:none; cursor:pointer;">VER TUDO</button>
@@ -94,10 +94,10 @@
 
         <div class="form-container no-print">
             <div class="form-grid">
-                <input type="text" id="desc" placeholder="Nome do Medicamento">
-                <input type="number" id="qtd" placeholder="Qtd" min="1">
-                <input type="number" id="custo" placeholder="Custo Unit." step="0.01">
-                <input type="number" id="venda" placeholder="Venda Unit." step="0.01">
+                <input type="text" id="desc" placeholder="Medicamento">
+                <input type="number" id="qtd" placeholder="Qtd">
+                <input type="number" id="custo" placeholder="Custo" step="0.01">
+                <input type="number" id="venda" placeholder="Venda" step="0.01">
                 <select id="motivo">
                     <option value="Estoque Zerado">Estoque Zerado</option>
                     <option value="Fornecedor Indisponível">Fornecedor Indisponível</option>
@@ -157,7 +157,7 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             carregarTudo();
-        } else { alert("Acesso Negado!"); }
+        } else { alert("Senha Incorreta!"); }
     }
 
     function adicionarAoFirebase() {
@@ -168,7 +168,7 @@
         const motivo = document.getElementById('motivo').value;
         const data = document.getElementById('dataReg').value;
 
-        if(!desc || isNaN(qtd) || isNaN(venda)) return alert("Preencha Medicamento, Qtd e Venda!");
+        if(!desc || isNaN(qtd) || isNaN(venda)) return alert("Preencha os campos obrigatórios!");
 
         db.ref('faltas').push({
             desc: desc.toUpperCase(),
@@ -275,7 +275,7 @@
         link.click();
     }
 
-    function removerItem(id) { if(confirm("Deseja apagar esse item da nuvem?")) db.ref('faltas/' + id).remove(); }
+    function removerItem(id) { if(confirm("Deseja apagar esse item?")) db.ref('faltas/' + id).remove(); }
     function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; document.getElementById('editId').value=''; }
 
     function enviarWhatsApp() {

@@ -19,7 +19,7 @@
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
         header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
-        .logo-img { max-width: 200px; height: auto; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        .logo-img { max-width: 180px; height: auto; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
         .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1px; text-transform: uppercase; }
         
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
@@ -40,18 +40,20 @@
         th { background: var(--dark); color: white; padding: 12px; text-align: left; font-size: 12px; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
-        .high-priority { border-left: 6px solid #ff1744; background: #fff5f5; }
-        .badge-red { background: #ff1744; color: white; padding: 3px 7px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        /* Estilos Curva ABC */
+        .high-priority { border-left: 8px solid #ff1744 !important; background: #fff1f1; }
+        .high-margin { border-left: 8px solid #00c853 !important; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; margin-top: 4px; display: inline-block; }
+        .badge-red { background: #ff1744; }
+        .badge-green { background: #00c853; }
 
         .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
-        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
         @media print {
             .no-print { display: none !important; }
-            body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; color: #000 !important; }
+            body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; }
             body.thermal-mode-active .container { width: 70mm !important; padding: 0.4cm !important; margin: 0 !important; border: none; }
-            body.thermal-mode-active .logo-img { max-width: 50mm !important; }
-            body.thermal-mode-active .nome-farmacia { font-size: 18px !important; }
             @page { margin: 0; }
         }
     </style>
@@ -60,7 +62,7 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <img src="Souza-Farma-logomarca.png" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/150?text=SOUZA+FARMA'">
+        <img src="Souza-Farma-logomarca.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
         <h1 style="color: var(--primary); margin: 10px 0; font-size: 24px;">SOUZA FARMA</h1>
         <input type="password" id="passInput" placeholder="Senha de Acesso" style="width: 90%; margin-bottom: 15px; text-align: center;"><br>
         <button onclick="checkLogin()" class="btn-add" style="width: 100%; padding: 15px;">ENTRAR</button>
@@ -70,12 +72,11 @@
 <div id="mainApp">
     <div class="container">
         <header>
-            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img" id="headerLogo">
+            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img">
             <h1 class="nome-farmacia">SOUZA FARMA</h1>
             <div class="info-farma">
-                <strong>Farmácia do Trabalhador</strong> | A Neto E Souza – CNPJ 45.856.880/0001-30<br>
-                Av. José Sarney nº 06, Bom Jesus – São Luís/MA<br>
-                <small>Cuidando da sua saúde, economia e preço baixo 💊💉</small>
+                <strong>Farmácia do Trabalhador</strong> | CNPJ 45.856.880/0001-30<br>
+                Av. José Sarney nº 06, Bom Jesus – São Luís/MA
             </div>
         </header>
 
@@ -117,8 +118,8 @@
                         <th>Produto / Detalhes</th>
                         <th>Qtd</th>
                         <th>Preços (C/V)</th>
-                        <th>Lucro</th>
-                        <th>Total Venda</th>
+                        <th>Lucro Total</th>
+                        <th>Venda Total</th>
                         <th class="no-print">Ações</th>
                     </tr>
                 </thead>
@@ -168,7 +169,7 @@
         const motivo = document.getElementById('motivo').value;
         const data = document.getElementById('dataReg').value;
 
-        if(!desc || isNaN(qtd) || isNaN(venda)) return alert("Preencha os campos obrigatórios!");
+        if(!desc || isNaN(qtd) || isNaN(venda)) return alert("Preencha Medicamento, Qtd e Venda!");
 
         db.ref('faltas').push({
             desc: desc.toUpperCase(),
@@ -194,20 +195,29 @@
         let tVenda = 0, tCusto = 0;
 
         [...lista].reverse().forEach(i => {
-            const vTotal = i.venda * i.qtd;
-            const lucItem = (i.venda - i.custo) * i.qtd;
-            const margem = i.venda > 0 ? ((i.venda - i.custo) / i.venda) * 100 : 0;
-            tVenda += vTotal; tCusto += i.custo * i.qtd;
+            const vTotalItem = i.venda * i.qtd;
+            const lucTotalItem = (i.venda - i.custo) * i.qtd;
+            const margemUnit = i.venda > 0 ? ((i.venda - i.custo) / i.venda) * 100 : 0;
+            tVenda += vTotalItem; tCusto += i.custo * i.qtd;
 
-            let isAltaPerda = lucItem >= 50;
+            // Lógica Curva ABC
+            let classeFila = "";
+            let etiqueta = "";
+            if (lucTotalItem >= 50) {
+                classeFila = "high-priority";
+                etiqueta = '<span class="badge badge-red">ALTA PERDA</span>';
+            } else if (margemUnit >= 35) {
+                classeFila = "high-margin";
+                etiqueta = '<span class="badge badge-green">ALTA MARGEM</span>';
+            }
 
             corpo.innerHTML += `
-                <tr class="${isAltaPerda ? 'high-priority' : ''}">
-                    <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small> ${isAltaPerda ? '<span class="badge-red">Urgente</span>' : ''}</td>
+                <tr class="${classeFila}">
+                    <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small><br>${etiqueta}</td>
                     <td>${i.qtd}</td>
                     <td>C: ${i.custo.toFixed(2)}<br>V: ${i.venda.toFixed(2)}</td>
-                    <td>R$ ${lucItem.toFixed(2)}<br><small>${margem.toFixed(1)}%</small></td>
-                    <td><strong>R$ ${vTotal.toFixed(2)}</strong></td>
+                    <td>R$ ${lucTotalItem.toFixed(2)}<br><small>${margemUnit.toFixed(1)}%</small></td>
+                    <td><strong>R$ ${vTotalItem.toFixed(2)}</strong></td>
                     <td class="no-print">
                         <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px;">✎</button>
                         <button onclick="removerItem('${i.id}')" style="color:red; cursor:pointer; border:none; background:none; margin-left:10px; font-size:18px;">🗑</button>
@@ -267,8 +277,8 @@
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Motivo;Qtd;Lucro;Total Venda\n';
-        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.motivo};${i.qtd};${(i.venda-i.custo).toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`);
+        let csv = '\uFEFFData;Produto;Qtd;Lucro Total;Venda Total\n';
+        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${((i.venda-i.custo)*i.qtd).toFixed(2)};${(i.venda*i.qtd).toFixed(2)}\n`);
         const link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
         link.download = "souza_farma_relatorio.csv";
@@ -281,7 +291,7 @@
     function enviarWhatsApp() {
         let msg = `*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A`;
         dadosCompletos.forEach(i => msg += `• ${i.desc} (Qtd: ${i.qtd})%0A`);
-        msg += `%0A_Total Vendas Perdidas: ${document.getElementById('dashVenda').innerText}_`;
+        msg += `%0A_Total Perdido: ${document.getElementById('dashVenda').innerText}_`;
         window.open(`https://wa.me/5598986287296?text=${msg}`);
     }
 </script>

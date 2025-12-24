@@ -19,7 +19,7 @@
         
         header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px; }
         .logo-img { max-width: 180px; height: auto; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
-        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1px; text-transform: uppercase; }
+        .nome-farmacia { color: var(--primary); font-size: 32px; font-weight: 900; margin: 0; text-transform: uppercase; }
         
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card { padding: 15px; border-radius: 8px; color: white; text-align: center; }
@@ -27,11 +27,11 @@
         .card h4 { margin: 0; font-size: 11px; text-transform: uppercase; }
         .card p { margin: 5px 0 0; font-size: 22px; font-weight: bold; }
 
-        .chart-container { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 25px; height: 300px; }
+        .chart-container { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 25px; height: 250px; }
 
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab-btn { padding: 10px 20px; border: none; background: #cfd8dc; cursor: pointer; border-radius: 6px 6px 0 0; font-weight: bold; }
-        .tab-btn.active { background: white; border: 1px solid #ddd; border-bottom: none; color: var(--primary); }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; }
+        .tab-btn { padding: 12px 25px; border: none; background: #cfd8dc; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); color: white; }
 
         .form-container { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; }
         .form-grid { display: grid; grid-template-columns: 2fr 0.8fr 1fr 1fr 1.2fr 1fr auto; gap: 10px; }
@@ -45,32 +45,41 @@
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
         .high-priority { border-left: 8px solid #ff1744 !important; background: #fff1f1; }
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; display: inline-block; }
-        .badge-red { background: #ff1744; }
-        .badge-success { background: var(--success); }
+        .badge-success { background: var(--success); color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
 
-        .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; }
-        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
+        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
 
-        @media print { .no-print { display: none !important; } }
+        /* AJUSTE TÉRMICO 70mm */
+        @media print {
+            .no-print { display: none !important; }
+            body.thermal-mode-active { width: 70mm; font-family: "Arial Black", sans-serif !important; color: #000 !important; }
+            body.thermal-mode-active .container { width: 70mm !important; padding: 0.5cm !important; margin: 0 !important; border: none; }
+            body.thermal-mode-active * { font-weight: 900 !important; }
+            body.thermal-mode-active th, body.thermal-mode-active td { border-bottom: 2px solid #000 !important; padding: 5px 0 !important; }
+            @page { margin: 0; }
+        }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
     <div class="login-box">
-        <img src="Souza-Farma-logomarca.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-        <h1 style="color: var(--primary); margin: 10px 0; font-size: 24px;">SOUZA FARMA</h1>
-        <input type="password" id="passInput" placeholder="Senha de Acesso" style="width: 90%; margin-bottom: 15px; text-align: center;"><br>
-        <button onclick="checkLogin()" class="btn-add" style="width: 100%; padding: 15px;">ENTRAR</button>
+        <h1 style="color: var(--primary); margin: 0; font-size: 28px;">SOUZA FARMA</h1>
+        <p>Acesso ao Sistema</p>
+        <input type="password" id="passInput" placeholder="Senha" style="width: 80%; margin-bottom: 15px; text-align: center;"><br>
+        <button onclick="checkLogin()" class="btn-add" style="width: 100%;">ENTRAR</button>
     </div>
 </div>
 
 <div id="mainApp">
     <div class="container">
         <header>
-            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img">
+            <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img" onerror="this.style.display='none'">
             <h1 class="nome-farmacia">SOUZA FARMA</h1>
+            <div class="info-farma" style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                Farmácia do Trabalhador | CNPJ 45.856.880/0001-30 | São Luís/MA
+            </div>
         </header>
 
         <div class="dashboard no-print">
@@ -84,8 +93,8 @@
         </div>
 
         <div class="tabs no-print">
-            <button class="tab-btn active" onclick="switchTab('faltas')">Faltas Atuais</button>
-            <button class="tab-btn" onclick="switchTab('historico')">Histórico de Compras</button>
+            <button class="tab-btn active" id="btnTabFaltas" onclick="switchTab('faltas')">🛒 Faltas Atuais</button>
+            <button class="tab-btn" id="btnTabHist" onclick="switchTab('historico')">✅ Histórico Compras</button>
         </div>
 
         <div id="areaFaltas">
@@ -93,8 +102,8 @@
                 <div class="form-grid">
                     <input type="text" id="desc" placeholder="Medicamento">
                     <input type="number" id="qtd" placeholder="Qtd">
-                    <input type="number" id="custo" placeholder="Custo">
-                    <input type="number" id="venda" placeholder="Venda">
+                    <input type="number" id="custo" placeholder="Custo" step="0.01">
+                    <input type="number" id="venda" placeholder="Venda" step="0.01">
                     <select id="motivo">
                         <option value="Estoque Zerado">Estoque Zerado</option>
                         <option value="Fornecedor Indisponível">Fornecedor Indisponível</option>
@@ -110,9 +119,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Produto / Detalhes</th>
+                        <th>Produto / Motivo</th>
                         <th>Qtd</th>
-                        <th>Preços</th>
+                        <th>Custo/Venda</th>
                         <th>Lucro Total</th>
                         <th>Venda Total</th>
                         <th class="no-print">Ações</th>
@@ -123,14 +132,13 @@
         </div>
 
         <div id="areaHistorico" style="display:none;">
-            <h3>✅ Produtos Repostos (Histórico)</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Produto</th>
+                        <th>Qtd</th>
                         <th>Data Falta</th>
                         <th>Data Compra</th>
-                        <th>Custo na Época</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -139,8 +147,10 @@
         </div>
 
         <div class="footer-controls no-print">
-            <button class="btn-action" style="background:#263238" onclick="window.print()">🖨️ IMPRIMIR</button>
+            <button class="btn-action" style="background:#455a64" onclick="imprimir('A4')">🖨️ A4</button>
+            <button class="btn-action" style="background:#263238" onclick="imprimir('70mm')">🧾 TÉRMICA</button>
             <button class="btn-action" style="background:#25d366" onclick="enviarWhatsApp()">📲 WHATSAPP</button>
+            <button class="btn-action" style="background:#1565c0" onclick="exportarExcel()">📊 EXCEL</button>
             <button class="btn-action" style="background:#f44336" onclick="logout()">🔒 SAIR</button>
         </div>
     </div>
@@ -161,14 +171,13 @@
     const db = firebase.database();
     let dadosCompletos = [];
     let meuGrafico = null;
+    document.getElementById('dataReg').valueAsDate = new Date();
 
     window.onload = function() {
         if (sessionStorage.getItem('logado') === 'true') {
             document.getElementById('mainApp').style.display = 'block';
             carregarTudo();
-        } else {
-            document.getElementById('loginScreen').style.display = 'flex';
-        }
+        } else { document.getElementById('loginScreen').style.display = 'flex'; }
     };
 
     function checkLogin() {
@@ -177,130 +186,82 @@
             location.reload();
         } else { alert("Senha Incorreta!"); }
     }
-
     function logout() { sessionStorage.removeItem('logado'); location.reload(); }
 
     function switchTab(tab) {
-        const btns = document.querySelectorAll('.tab-btn');
-        btns.forEach(b => b.classList.remove('active'));
-        if(tab === 'faltas') {
-            document.getElementById('areaFaltas').style.display = 'block';
-            document.getElementById('areaHistorico').style.display = 'none';
-            btns[0].classList.add('active');
-        } else {
-            document.getElementById('areaFaltas').style.display = 'none';
-            document.getElementById('areaHistorico').style.display = 'block';
-            btns[1].classList.add('active');
-        }
+        document.getElementById('areaFaltas').style.display = tab === 'faltas' ? 'block' : 'none';
+        document.getElementById('areaHistorico').style.display = tab === 'historico' ? 'block' : 'none';
+        document.getElementById('btnTabFaltas').className = tab === 'faltas' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('btnTabHist').className = tab === 'historico' ? 'tab-btn active' : 'tab-btn';
     }
 
     function carregarTudo() {
         db.ref('faltas').on('value', (snapshot) => {
             dadosCompletos = [];
             snapshot.forEach((item) => { dadosCompletos.push({ id: item.key, ...item.val() }); });
-            renderizar(dadosCompletos);
-            atualizarGrafico(dadosCompletos);
+            renderizar();
+            atualizarGrafico();
         });
     }
 
-    function renderizar(lista) {
+    function renderizar() {
         const corpo = document.getElementById('corpoTabela');
         const corpoHist = document.getElementById('corpoHistorico');
         corpo.innerHTML = ''; corpoHist.innerHTML = '';
-        let tVenda = 0, tCusto = 0;
+        let tVenda = 0, tLucro = 0;
 
-        [...lista].reverse().forEach(i => {
-            const vTotalItem = i.venda * i.qtd;
-            const lucTotalItem = (i.venda - i.custo) * i.qtd;
-            
+        [...dadosCompletos].reverse().forEach(i => {
+            const vTotal = i.venda * i.qtd;
+            const lucTotal = (i.venda - i.custo) * i.qtd;
+
             if (!i.comprado) {
-                tVenda += vTotalItem; tCusto += i.custo * i.qtd;
-                let classeFila = lucTotalItem >= 50 ? "high-priority" : "";
-                
+                tVenda += vTotal; tLucro += lucTotal;
+                let isHigh = lucTotal >= 50;
                 corpo.innerHTML += `
-                    <tr class="${classeFila}">
-                        <td><strong>${i.desc}</strong><br><small>${i.data}</small></td>
+                    <tr class="${isHigh ? 'high-priority' : ''}">
+                        <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small></td>
                         <td>${i.qtd}</td>
-                        <td>C: ${i.custo.toFixed(2)} | V: ${i.venda.toFixed(2)}</td>
-                        <td>R$ ${lucTotalItem.toFixed(2)}</td>
-                        <td><strong>R$ ${vTotalItem.toFixed(2)}</strong></td>
+                        <td>C: ${i.custo.toFixed(2)} / V: ${i.venda.toFixed(2)}</td>
+                        <td>R$ ${lucTotal.toFixed(2)}</td>
+                        <td><strong>R$ ${vTotal.toFixed(2)}</strong></td>
                         <td class="no-print">
-                            <button title="Marcar como Comprado" onclick="marcarComprado('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:16px;">✅</button>
-                            <button onclick="editarItem('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:16px; margin-left:8px;">✎</button>
-                            <button onclick="removerItem('${i.id}')" style="background:none; border:none; cursor:pointer; color:red; font-size:16px; margin-left:8px;">🗑</button>
+                            <button onclick="marcarComprado('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:16px;">✅</button>
+                            <button onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:16px; margin-left:5px;">✎</button>
+                            <button onclick="removerItem('${i.id}')" style="cursor:pointer; border:none; background:none; color:red; font-size:16px; margin-left:5px;">🗑</button>
                         </td>
                     </tr>`;
             } else {
-                corpoHist.innerHTML += `
-                    <tr>
-                        <td><strong>${i.desc}</strong></td>
-                        <td>${i.data}</td>
-                        <td>${i.dataCompra || '--'}</td>
-                        <td>R$ ${i.custo.toFixed(2)}</td>
-                        <td><span class="badge badge-success">REPOIÇÃO CONCLUÍDA</span></td>
-                    </tr>`;
+                corpoHist.innerHTML += `<tr><td><strong>${i.desc}</strong></td><td>${i.qtd}</td><td>${i.data}</td><td>${i.dataCompra}</td><td><span class="badge-success">OK</span></td></tr>`;
             }
         });
-        
+
         document.getElementById('dashVenda').innerText = `R$ ${tVenda.toFixed(2)}`;
-        document.getElementById('dashLucro').innerText = `R$ ${(tVenda - tCusto).toFixed(2)}`;
-        document.getElementById('dashMargem').innerText = `${tVenda > 0 ? (((tVenda-tCusto)/tVenda)*100).toFixed(2) : 0}%`;
+        document.getElementById('dashLucro').innerText = `R$ ${tLucro.toFixed(2)}`;
+        document.getElementById('dashMargem').innerText = `${tVenda > 0 ? ((tLucro/tVenda)*100).toFixed(2) : 0}%`;
+    }
+
+    function adicionarAoFirebase() {
+        const desc = document.getElementById('desc').value;
+        const qtd = parseFloat(document.getElementById('qtd').value);
+        if(!desc || !qtd) return alert("Preencha Medicamento e Qtd!");
+        db.ref('faltas').push({
+            desc: desc.toUpperCase(),
+            qtd, custo: parseFloat(document.getElementById('custo').value) || 0,
+            venda: parseFloat(document.getElementById('venda').value) || 0,
+            motivo: document.getElementById('motivo').value,
+            rawDate: document.getElementById('dataReg').value,
+            data: document.getElementById('dataReg').value.split('-').reverse().join('/'),
+            comprado: false
+        });
+        limparCampos();
     }
 
     function marcarComprado(id) {
-        if(confirm("Confirmar que o produto foi reposto no stock?")) {
-            db.ref('faltas/' + id).update({
-                comprado: true,
-                dataCompra: new Date().toLocaleDateString('pt-BR')
-            });
+        if(confirm("Confirmar reposição no estoque?")) {
+            db.ref('faltas/' + id).update({ comprado: true, dataCompra: new Date().toLocaleDateString('pt-BR') });
         }
     }
 
-    function atualizarGrafico(lista) {
-        const dias = {};
-        lista.filter(i => !i.comprado).forEach(i => {
-            dias[i.data] = (dias[i.data] || 0) + (i.venda * i.qtd);
-        });
-
-        const labels = Object.keys(dias).slice(-7);
-        const valores = labels.map(l => dias[l]);
-
-        if (meuGrafico) meuGrafico.destroy();
-        const ctx = document.getElementById('meuGrafico').getContext('2d');
-        meuGrafico = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Vendas Perdidas por Dia (R$)',
-                    data: valores,
-                    backgroundColor: '#d32f2f',
-                    borderRadius: 5
-                }]
-            },
-            options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-        });
-    }
-
-    // Restante das funções (adicionar, editar, remover) mantidas conforme versões anteriores
-    function adicionarAoFirebase() {
-        const d = document.getElementById('desc').value;
-        const q = parseFloat(document.getElementById('qtd').value);
-        const c = parseFloat(document.getElementById('custo').value) || 0;
-        const v = parseFloat(document.getElementById('venda').value) || 0;
-        const dt = document.getElementById('dataReg').value;
-        if(!d || isNaN(q)) return alert("Preencha os campos!");
-        db.ref('faltas').push({
-            desc: d.toUpperCase(), qtd: q, custo: c, venda: v,
-            motivo: document.getElementById('motivo').value,
-            rawDate: dt, data: dt.split('-').reverse().join('/'),
-            comprado: false
-        });
-        document.getElementById('desc').value=''; document.getElementById('qtd').value='';
-    }
-    
-    function removerItem(id) { if(confirm("Apagar permanentemente?")) db.ref('faltas/' + id).remove(); }
-    
     function editarItem(id) {
         const i = dadosCompletos.find(x => x.id === id);
         document.getElementById('desc').value = i.desc;
@@ -315,17 +276,57 @@
 
     function salvarEdicaoFirebase() {
         const id = document.getElementById('editId').value;
+        const d = document.getElementById('dataReg').value;
         db.ref('faltas/' + id).update({
             desc: document.getElementById('desc').value.toUpperCase(),
             qtd: parseFloat(document.getElementById('qtd').value),
             custo: parseFloat(document.getElementById('custo').value),
             venda: parseFloat(document.getElementById('venda').value),
-            dataReg: document.getElementById('dataReg').value
+            rawDate: d, data: d.split('-').reverse().join('/')
         });
-        location.reload();
+        document.getElementById('btnAdd').style.display = 'block';
+        document.getElementById('btnUpdate').style.display = 'none';
+        limparCampos();
     }
-    
-    document.getElementById('dataReg').valueAsDate = new Date();
+
+    function atualizarGrafico() {
+        const dias = {};
+        dadosCompletos.filter(i => !i.comprado).forEach(i => { dias[i.data] = (dias[i.data] || 0) + (i.venda * i.qtd); });
+        const labels = Object.keys(dias).slice(-7);
+        const valores = labels.map(l => dias[l]);
+        if (meuGrafico) meuGrafico.destroy();
+        const ctx = document.getElementById('meuGrafico').getContext('2d');
+        meuGrafico = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Vendas Perdidas (R$)', data: valores, backgroundColor: '#d32f2f' }] },
+            options: { maintainAspectRatio: false }
+        });
+    }
+
+    function exportarExcel() {
+        let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Status\n';
+        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${i.custo};${i.venda};${i.comprado ? 'Comprado':'Falta'}\n`);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "souza_farma_completo.csv";
+        link.click();
+    }
+
+    function imprimir(formato) {
+        if(formato === '70mm') document.body.classList.add('thermal-mode-active');
+        else document.body.classList.remove('thermal-mode-active');
+        setTimeout(() => { window.print(); }, 400);
+    }
+
+    function enviarWhatsApp() {
+        let msg = `*SOUZA FARMA - FALTAS*%0A`;
+        dadosCompletos.filter(i => !i.comprado).forEach(i => msg += `• ${i.desc} (Qtd: ${i.qtd})%0A`);
+        window.open(`https://wa.me/5598986287296?text=${msg}`);
+    }
+
+    function removerItem(id) { if(confirm("Apagar da nuvem?")) db.ref('faltas/' + id).remove(); }
+    function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; }
 </script>
 </body>
 </html>

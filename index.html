@@ -44,13 +44,15 @@
         th { background: var(--dark); color: white; padding: 12px; text-align: left; font-size: 12px; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
-        /* Estilos Curva ABC */
+        /* ESTILOS CURVA ABC */
         .high-priority { border-left: 8px solid #ff1744 !important; background: #fff1f1; }
-        .badge-red { background: #ff1744; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .badge-success { background: var(--success); color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .high-margin { border-left: 8px solid #00c853 !important; }
+        .badge-abc { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; display: inline-block; margin-top: 5px; }
+        .badge-red { background: #ff1744; }
+        .badge-green { background: #00c853; }
 
         .footer-controls { display: flex; gap: 10px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
-        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-action { padding: 12px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
         @media print {
             .no-print { display: none !important; }
@@ -78,9 +80,6 @@
         <header>
             <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="logo-img" onerror="this.style.display='none'">
             <h1 class="nome-farmacia">SOUZA FARMA</h1>
-            <div class="info-farma" style="font-size: 12px; color: #666; margin-bottom: 10px;">
-                Farmácia do Trabalhador | CNPJ 45.856.880/0001-30 | São Luís/MA
-            </div>
         </header>
 
         <div class="dashboard no-print">
@@ -122,7 +121,7 @@
                     <tr>
                         <th>Produto / Detalhes</th>
                         <th>Qtd</th>
-                        <th>Preços</th>
+                        <th>Custo / Venda</th>
                         <th>Lucro Total</th>
                         <th>Venda Total</th>
                         <th class="no-print">Ações</th>
@@ -172,7 +171,6 @@
     const db = firebase.database();
     let dadosCompletos = [];
     let meuGrafico = null;
-    document.getElementById('dataReg').valueAsDate = new Date();
 
     window.onload = function() {
         if (sessionStorage.getItem('logado') === 'true') {
@@ -214,20 +212,28 @@
         [...dadosCompletos].reverse().forEach(i => {
             const vTotal = i.venda * i.qtd;
             const lucTotal = (i.venda - i.custo) * i.qtd;
+            const margemUnit = i.venda > 0 ? ((i.venda - i.custo) / i.venda) * 100 : 0;
 
             if (!i.comprado) {
                 tVenda += vTotal; tLucro += lucTotal;
-                let isHigh = lucTotal >= 50;
+                
+                // LÓGICA ABC
+                let classeABC = "";
+                let etiqueta = "";
+                if (lucTotal >= 50) {
+                    classeABC = "high-priority";
+                    etiqueta = '<span class="badge-abc badge-red">ALTA PERDA</span>';
+                } else if (margemUnit >= 35) {
+                    classeABC = "high-margin";
+                    etiqueta = '<span class="badge-abc badge-green">ALTA MARGEM</span>';
+                }
+
                 corpo.innerHTML += `
-                    <tr class="${isHigh ? 'high-priority' : ''}">
-                        <td>
-                            <strong>${i.desc}</strong><br>
-                            <small>${i.data} | ${i.motivo}</small>
-                            ${isHigh ? '<br><span class="badge-red">ALTA PERDA</span>' : ''}
-                        </td>
+                    <tr class="${classeABC}">
+                        <td><strong>${i.desc}</strong><br><small>${i.data} | ${i.motivo}</small><br>${etiqueta}</td>
                         <td>${i.qtd}</td>
                         <td>C: ${i.custo.toFixed(2)} / V: ${i.venda.toFixed(2)}</td>
-                        <td>R$ ${lucTotal.toFixed(2)}</td>
+                        <td>R$ ${lucTotal.toFixed(2)}<br><small>${margemUnit.toFixed(1)}%</small></td>
                         <td><strong>R$ ${vTotal.toFixed(2)}</strong></td>
                         <td class="no-print">
                             <button title="Comprado" onclick="marcarComprado('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px;">✅</button>
@@ -243,8 +249,7 @@
                         <td>${i.data}</td>
                         <td>${i.dataCompra}</td>
                         <td>
-                            <button onclick="reverterCompra('${i.id}')" style="background:#607d8b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">↩ Estornar</button>
-                            <button onclick="removerItem('${i.id}')" style="background:none; border:none; color:red; cursor:pointer; font-size:16px; margin-left:10px;">🗑</button>
+                            <button onclick="estornarCompra('${i.id}')" style="background:#607d8b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">↩ Estornar</button>
                         </td>
                     </tr>`;
             }
@@ -256,24 +261,25 @@
     }
 
     function marcarComprado(id) {
-        if(confirm("Confirmar reposição no estoque?")) {
+        if(confirm("Marcar produto como reposto no estoque?")) {
             db.ref('faltas/' + id).update({ comprado: true, dataCompra: new Date().toLocaleDateString('pt-BR') });
         }
     }
 
-    function reverterCompra(id) {
-        if(confirm("Deseja mover este item de volta para a lista de faltas?")) {
+    function estornarCompra(id) {
+        if(confirm("O produto voltará para a lista de faltas ativas. Confirmar?")) {
             db.ref('faltas/' + id).update({ comprado: false, dataCompra: null });
         }
     }
 
     function adicionarAoFirebase() {
-        const desc = document.getElementById('desc').value;
-        const qtd = parseFloat(document.getElementById('qtd').value);
-        if(!desc || !qtd) return alert("Preencha Medicamento e Qtd!");
+        const d = document.getElementById('desc').value;
+        const q = parseFloat(document.getElementById('qtd').value);
+        if(!d || !q) return alert("Preencha Medicamento e Qtd!");
         db.ref('faltas').push({
-            desc: desc.toUpperCase(),
-            qtd, custo: parseFloat(document.getElementById('custo').value) || 0,
+            desc: d.toUpperCase(),
+            qtd: q, 
+            custo: parseFloat(document.getElementById('custo').value) || 0,
             venda: parseFloat(document.getElementById('venda').value) || 0,
             motivo: document.getElementById('motivo').value,
             rawDate: document.getElementById('dataReg').value,
@@ -298,13 +304,13 @@
 
     function salvarEdicaoFirebase() {
         const id = document.getElementById('editId').value;
-        const d = document.getElementById('dataReg').value;
+        const dt = document.getElementById('dataReg').value;
         db.ref('faltas/' + id).update({
             desc: document.getElementById('desc').value.toUpperCase(),
             qtd: parseFloat(document.getElementById('qtd').value),
             custo: parseFloat(document.getElementById('custo').value),
             venda: parseFloat(document.getElementById('venda').value),
-            rawDate: d, data: d.split('-').reverse().join('/')
+            rawDate: dt, data: dt.split('-').reverse().join('/')
         });
         document.getElementById('btnAdd').style.display = 'block';
         document.getElementById('btnUpdate').style.display = 'none';
@@ -326,11 +332,8 @@
     }
 
     function exportarExcel() {
-        let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Lucro;Status\n';
-        dadosCompletos.forEach(i => {
-            const luc = (i.venda - i.custo) * i.qtd;
-            csv += `${i.data};${i.desc};${i.qtd};${i.custo};${i.venda};${luc.toFixed(2)};${i.comprado ? 'Comprado':'Em Falta'}\n`;
-        });
+        let csv = '\uFEFFData;Produto;Qtd;Lucro;Status\n';
+        dadosCompletos.forEach(i => csv += `${i.data};${i.desc};${i.qtd};${(i.venda-i.custo).toFixed(2)};${i.comprado ? 'Comprado':'Falta'}\n`);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -345,13 +348,20 @@
     }
 
     function enviarWhatsApp() {
-        let msg = `*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A`;
+        let msg = `*SOUZA FARMA - FALTAS*%0A`;
         dadosCompletos.filter(i => !i.comprado).forEach(i => msg += `• ${i.desc} (Qtd: ${i.qtd})%0A`);
         window.open(`https://wa.me/5598986287296?text=${msg}`);
     }
 
     function removerItem(id) { if(confirm("Apagar permanentemente?")) db.ref('faltas/' + id).remove(); }
-    function limparCampos() { document.getElementById('desc').value=''; document.getElementById('qtd').value=''; document.getElementById('custo').value=''; document.getElementById('venda').value=''; }
+    function limparCampos() { 
+        document.getElementById('desc').value=''; 
+        document.getElementById('qtd').value=''; 
+        document.getElementById('custo').value=''; 
+        document.getElementById('venda').value=''; 
+        document.getElementById('editId').value='';
+    }
+    document.getElementById('dataReg').valueAsDate = new Date();
 </script>
 </body>
 </html>

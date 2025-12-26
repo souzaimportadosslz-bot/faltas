@@ -313,6 +313,39 @@
     let dados = [];
     let barChart, pieChart;
 
+    // FUNÇÃO PARA FORMATAR NÚMEROS COM VÍRGULA (padrão BR)
+    function formatarNumeroBR(valor, casasDecimais = 2) {
+        if (valor === null || valor === undefined || isNaN(valor)) return '0,00';
+        
+        // Arredonda para o número de casas decimais especificado
+        const valorArredondado = Number(valor).toFixed(casasDecimais);
+        
+        // Substitui ponto por vírgula
+        return valorArredondado.replace('.', ',');
+    }
+
+    // FUNÇÃO PARA FORMATAR MOEDA BRASILEIRA
+    function formatarMoedaBR(valor) {
+        if (valor === null || valor === undefined || isNaN(valor)) return 'R$ 0,00';
+        
+        // Formata como moeda brasileira
+        return 'R$ ' + formatarNumeroBR(valor, 2);
+    }
+
+    // FUNÇÃO PARA CONVERTER VÍRGULA PARA PONTO (para cálculos)
+    function converterParaDecimal(valorString) {
+        if (!valorString) return 0;
+        
+        // Remove R$, espaços e substitui vírgula por ponto
+        const limpo = valorString.toString()
+            .replace('R$', '')
+            .replace(' ', '')
+            .replace('.', '')  // Remove pontos de milhar
+            .replace(',', '.'); // Substitui vírgula decimal por ponto
+        
+        return parseFloat(limpo) || 0;
+    }
+
     window.onload = () => {
         if(sessionStorage.getItem('logado') === 'true') { 
             document.getElementById('mainApp').style.display = 'block';
@@ -329,6 +362,21 @@
         document.getElementById('desc').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 adicionarAoFirebase();
+            }
+        });
+
+        // Configurar campos numéricos para aceitar vírgula
+        document.getElementById('custo').addEventListener('blur', function() {
+            const valor = this.value;
+            if (valor && valor.includes('.')) {
+                this.value = valor.replace('.', ',');
+            }
+        });
+
+        document.getElementById('venda').addEventListener('blur', function() {
+            const valor = this.value;
+            if (valor && valor.includes('.')) {
+                this.value = valor.replace('.', ',');
             }
         });
     };
@@ -409,9 +457,9 @@
                 corpo.innerHTML += `<tr class="${classeABC}">
                     <td><strong>${i.desc}</strong><br><small>${i.data || i.rawDate} | ${i.motivo || 'Não informado'}</small><br>${etiqueta}</td>
                     <td>${i.qtd}</td>
-                    <td>C: ${parseFloat(i.custo || 0).toFixed(2)} / V: ${parseFloat(i.venda || 0).toFixed(2)}</td>
-                    <td>R$ ${lucroT.toFixed(2)}<br><small>${margemUnit.toFixed(1)}%</small></td>
-                    <td><strong>R$ ${totalV.toFixed(2)}</strong></td>
+                    <td>C: ${formatarMoedaBR(i.custo || 0)} / V: ${formatarMoedaBR(i.venda || 0)}</td>
+                    <td>${formatarMoedaBR(lucroT)}<br><small>${formatarNumeroBR(margemUnit, 1)}%</small></td>
+                    <td><strong>${formatarMoedaBR(totalV)}</strong></td>
                     <td class="no-print">
                         <button title="Comprado" onclick="marcarComprado('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px;">✅</button>
                         <button title="Editar" onclick="editarItem('${i.id}')" style="cursor:pointer; border:none; background:none; font-size:18px; margin-left:8px;">✎</button>
@@ -428,14 +476,14 @@
                     <td><strong>${i.desc}</strong></td>
                     <td>${i.data || i.rawDate}</td>
                     <td>${i.dataCompra || 'Não informada'}</td>
-                    <td>R$ ${parseFloat(i.custo || 0).toFixed(2)} ${trend}</td>
+                    <td>${formatarMoedaBR(i.custo || 0)} ${trend}</td>
                     <td><button onclick="estornar('${i.id}')" style="background:#607d8b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">↩ Estornar</button></td></tr>`;
             }
         });
         
-        document.getElementById('dashVenda').innerText = `R$ ${tV.toFixed(2)}`;
-        document.getElementById('dashLucro').innerText = `R$ ${tL.toFixed(2)}`;
-        document.getElementById('dashMargem').innerText = tV > 0 ? ((tL/tV)*100).toFixed(1) + "%" : "0%";
+        document.getElementById('dashVenda').innerText = formatarMoedaBR(tV);
+        document.getElementById('dashLucro').innerText = formatarMoedaBR(tL);
+        document.getElementById('dashMargem').innerText = tV > 0 ? formatarNumeroBR((tL/tV)*100, 1) + "%" : "0%";
     }
 
     function adicionarAoFirebase() {
@@ -454,8 +502,9 @@
             return;
         }
         
-        const custo = parseFloat(document.getElementById('custo').value) || 0;
-        const venda = parseFloat(document.getElementById('venda').value) || 0;
+        // Usar a função de conversão para tratar vírgula
+        const custo = converterParaDecimal(document.getElementById('custo').value);
+        const venda = converterParaDecimal(document.getElementById('venda').value);
         
         if (venda > 0 && custo > venda) {
             if (!confirm("Custo maior que venda! Deseja continuar?")) {
@@ -491,8 +540,8 @@
         
         document.getElementById('desc').value = i.desc;
         document.getElementById('qtd').value = i.qtd;
-        document.getElementById('custo').value = i.custo;
-        document.getElementById('venda').value = i.venda;
+        document.getElementById('custo').value = formatarNumeroBR(i.custo, 2);
+        document.getElementById('venda').value = formatarNumeroBR(i.venda, 2);
         document.getElementById('dataReg').value = i.rawDate || new Date().toISOString().split('T')[0];
         document.getElementById('editId').value = id;
         document.getElementById('btnAdd').style.display = 'none';
@@ -508,11 +557,15 @@
         const dt = document.getElementById('dataReg').value;
         const dataFormatada = dt.split('-').reverse().join('/');
         
+        // Converter valores com vírgula para decimal
+        const custo = converterParaDecimal(document.getElementById('custo').value);
+        const venda = converterParaDecimal(document.getElementById('venda').value);
+        
         db.ref('faltas/'+id).update({
             desc: document.getElementById('desc').value.trim().toUpperCase(),
             qtd: parseFloat(document.getElementById('qtd').value),
-            custo: parseFloat(document.getElementById('custo').value) || 0,
-            venda: parseFloat(document.getElementById('venda').value) || 0,
+            custo: custo,
+            venda: venda,
             rawDate: dt, 
             data: dataFormatada,
             timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -595,6 +648,22 @@
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Perda: ${formatarMoedaBR(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return formatarMoedaBR(value);
+                                }
+                            }
                         }
                     }
                 }
@@ -631,7 +700,18 @@
                                     size: 11
                                 }
                             }
-                        } 
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
                     } 
                 }
             });
@@ -653,7 +733,7 @@
             i.desc, 
             i.qtd, 
             i.motivo || 'Não informado', 
-            'R$ '+ ((i.venda || 0) * (i.qtd || 0)).toFixed(2)
+            formatarMoedaBR((i.venda || 0) * (i.qtd || 0))
         ]);
         
         doc.autoTable({ 
@@ -669,7 +749,7 @@
         
         doc.setFontSize(11);
         doc.setTextColor(211, 47, 47);
-        doc.text(`TOTAL PERDAS: R$ ${totalPerda.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+        doc.text(`TOTAL PERDAS: ${formatarMoedaBR(totalPerda)}`, 14, doc.lastAutoTable.finalY + 10);
         
         doc.save(`souza_farma_relatorio_${new Date().toISOString().slice(0,10)}.pdf`);
     }
@@ -678,7 +758,7 @@
         let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Lucro;Status;Motivo\n';
         dados.forEach(i => {
             const lucro = (i.venda || 0) - (i.custo || 0);
-            csv += `${i.data || i.rawDate};${i.desc};${i.qtd};${i.custo || 0};${i.venda || 0};${lucro.toFixed(2)};${i.comprado ? 'Comprado':'Falta'};${i.motivo || ''}\n`;
+            csv += `${i.data || i.rawDate};${i.desc};${i.qtd};${formatarNumeroBR(i.custo || 0)};${formatarNumeroBR(i.venda || 0)};${formatarNumeroBR(lucro)};${i.comprado ? 'Comprado':'Falta'};${i.motivo || ''}\n`;
         });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
@@ -737,11 +817,11 @@
         
         faltas.forEach(i => {
             const total = (i.venda || 0) * (i.qtd || 0);
-            m += `• ${i.desc} (Qtd: ${i.qtd}) - R$ ${total.toFixed(2)}%0A`;
+            m += `• ${i.desc} (Qtd: ${i.qtd}) - ${formatarMoedaBR(total)}%0A`;
         });
         
         const totalPerda = faltas.reduce((sum, i) => sum + ((i.venda || 0) * (i.qtd || 0)), 0);
-        m += `%0A*PERDA ESTIMADA: R$ ${totalPerda.toFixed(2)}*`;
+        m += `%0A*PERDA ESTIMADA: ${formatarMoedaBR(totalPerda)}*`;
         m += `%0A%0A_Relatório gerado automaticamente pelo Sistema Souza Farma_`;
         
         window.open(`https://wa.me/5598986287296?text=${m}`);

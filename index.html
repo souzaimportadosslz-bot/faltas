@@ -38,6 +38,75 @@
         .tab-btn { padding: 12px 25px; border: none; background: #cfd8dc; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; }
         .tab-btn.active { background: var(--primary); color: white; }
 
+        /* NOVO: FILTROS DE DATA */
+        .filtros-container {
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c5e1a5;
+        }
+        
+        .filtros-titulo {
+            color: #33691e;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .filtro-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filtro-label {
+            font-size: 12px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .btn-filtro {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .btn-limpar {
+            background: #757575;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .filtro-info {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            color: #666;
+            padding-top: 5px;
+            border-top: 1px dashed #ddd;
+            margin-top: 5px;
+        }
+
         .form-container { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; }
         .form-grid { display: grid; grid-template-columns: 2fr 0.8fr 1fr 1fr 1.2fr 1fr auto; gap: 10px; }
         
@@ -166,7 +235,8 @@
             body.thermal-mode-active .footer-controls,
             body.thermal-mode-active button,
             body.thermal-mode-active .badge-abc,
-            body.thermal-mode-active .high-priority {
+            body.thermal-mode-active .high-priority,
+            body.thermal-mode-active .filtros-container {
                 display: none !important;
             }
             
@@ -207,6 +277,11 @@
             
             .charts-row {
                 grid-template-columns: 1fr !important;
+            }
+            
+            .filtros-grid {
+                grid-template-columns: 1fr !important;
+                gap: 8px;
             }
         }
     </style>
@@ -253,6 +328,38 @@
             <button class="tab-btn" id="btnTabHist" onclick="switchTab('historico')">✅ Histórico Compras</button>
         </div>
 
+        <!-- NOVO: FILTROS DE DATA -->
+        <div class="filtros-container no-print" id="filtrosContainer">
+            <div class="filtros-titulo">
+                <span>🔍 FILTROS DE DATA</span>
+            </div>
+            <div class="filtros-grid">
+                <div class="filtro-group">
+                    <label class="filtro-label">Data Específica</label>
+                    <input type="date" id="filtroDataUnica">
+                </div>
+                
+                <div class="filtro-group">
+                    <label class="filtro-label">Período - De</label>
+                    <input type="date" id="filtroDataInicio">
+                </div>
+                
+                <div class="filtro-group">
+                    <label class="filtro-label">Período - Até</label>
+                    <input type="date" id="filtroDataFim">
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-filtro" onclick="aplicarFiltroData()">APLICAR FILTRO</button>
+                    <button class="btn-limpar" onclick="limparFiltroData()">LIMPAR</button>
+                </div>
+                
+                <div class="filtro-info" id="filtroInfo">
+                    Mostrando todas as faltas. Use os filtros acima para buscar por data específica ou período.
+                </div>
+            </div>
+        </div>
+
         <div id="areaFaltas">
             <div class="form-container no-print">
                 <div class="form-grid">
@@ -281,6 +388,7 @@
         </div>
 
         <div id="areaHistorico" style="display:none;">
+            <!-- Filtros para histórico (opcional, pode adicionar depois) -->
             <table>
                 <thead><tr><th>Produto</th><th>Data Falta</th><th>Data Compra</th><th>Preço Médio</th><th>Ações</th></tr></thead>
                 <tbody id="corpoHistorico"></tbody>
@@ -312,6 +420,8 @@
     const db = firebase.database();
     let dados = [];
     let barChart, pieChart;
+    let dadosFiltrados = [];
+    let filtroAtivo = false;
 
     // FUNÇÃO PARA FORMATAR NÚMEROS COM VÍRGULA (padrão BR)
     function formatarNumeroBR(valor, casasDecimais = 2) {
@@ -346,6 +456,16 @@
         return parseFloat(limpo) || 0;
     }
 
+    // FUNÇÃO PARA CONVERTER DATA BR PARA ISO (DD/MM/AAAA -> AAAA-MM-DD)
+    function converterDataBRparaISO(dataBR) {
+        if (!dataBR) return null;
+        const partes = dataBR.split('/');
+        if (partes.length === 3) {
+            return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+        }
+        return null;
+    }
+
     window.onload = () => {
         if(sessionStorage.getItem('logado') === 'true') { 
             document.getElementById('mainApp').style.display = 'block';
@@ -358,6 +478,14 @@
         const hoje = new Date();
         const dataFormatada = hoje.toISOString().split('T')[0];
         document.getElementById('dataReg').value = dataFormatada;
+        
+        // Preencher datas padrão nos filtros
+        const primeiraDataMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const primeiraDataFormatada = primeiraDataMes.toISOString().split('T')[0];
+        
+        document.getElementById('filtroDataUnica').value = dataFormatada;
+        document.getElementById('filtroDataInicio').value = primeiraDataFormatada;
+        document.getElementById('filtroDataFim').value = dataFormatada;
         
         document.getElementById('desc').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
@@ -404,6 +532,13 @@
         document.getElementById('areaHistorico').style.display = t === 'historico' ? 'block' : 'none';
         document.getElementById('btnTabFaltas').classList.toggle('active', t === 'faltas');
         document.getElementById('btnTabHist').classList.toggle('active', t === 'historico');
+        
+        // Mostrar/ocultar filtros conforme a aba
+        if (t === 'faltas') {
+            document.getElementById('filtrosContainer').style.display = 'block';
+        } else {
+            document.getElementById('filtrosContainer').style.display = 'none';
+        }
     }
 
     function carregarDados() {
@@ -429,7 +564,11 @@
         corpoH.innerHTML = '';
         let tV = 0, tL = 0;
 
-        const dadosOrdenados = [...dados].sort((a, b) => {
+        // Usar dados filtrados se houver filtro ativo, senão usar todos os dados
+        const dadosParaRenderizar = filtroAtivo ? dadosFiltrados : dados.filter(item => !item.comprado);
+        
+        // Ordenar por data (mais recente primeiro)
+        const dadosOrdenados = [...dadosParaRenderizar].sort((a, b) => {
             if (!a.rawDate || !b.rawDate) return 0;
             return new Date(b.rawDate) - new Date(a.rawDate);
         });
@@ -466,6 +605,7 @@
                         <button title="Remover" onclick="removerItem('${i.id}')" style="cursor:pointer; border:none; background:none; color:red; font-size:18px; margin-left:8px;">🗑</button>
                     </td></tr>`;
             } else {
+                // Para histórico (quando na aba de histórico)
                 const comprasAnteriores = dados.filter(x => x.desc === i.desc && x.comprado && x.id !== i.id);
                 let trend = "–";
                 if(comprasAnteriores.length > 0) {
@@ -481,9 +621,232 @@
             }
         });
         
+        // Atualizar dashboard
         document.getElementById('dashVenda').innerText = formatarMoedaBR(tV);
         document.getElementById('dashLucro').innerText = formatarMoedaBR(tL);
         document.getElementById('dashMargem').innerText = tV > 0 ? formatarNumeroBR((tL/tV)*100, 1) + "%" : "0%";
+        
+        // Atualizar contador de itens
+        const totalItens = dadosParaRenderizar.length;
+        const infoFiltro = document.getElementById('filtroInfo');
+        
+        if (filtroAtivo) {
+            infoFiltro.innerHTML = `<strong>Filtro aplicado:</strong> Mostrando ${totalItens} item(s) filtrado(s). <span style="color: #d32f2f; cursor: pointer;" onclick="limparFiltroData()">[Limpar filtro]</span>`;
+        } else {
+            infoFiltro.innerHTML = `Mostrando todas as ${totalItens} falta(s). Use os filtros acima para buscar por data específica ou período.`;
+        }
+    }
+
+    // NOVA FUNÇÃO: APLICAR FILTRO POR DATA
+    function aplicarFiltroData() {
+        const dataUnica = document.getElementById('filtroDataUnica').value;
+        const dataInicio = document.getElementById('filtroDataInicio').value;
+        const dataFim = document.getElementById('filtroDataFim').value;
+        
+        // Verificar qual tipo de filtro será aplicado
+        if (dataUnica) {
+            // Filtro por data única
+            const dataFormatadaBR = dataUnica.split('-').reverse().join('/');
+            dadosFiltrados = dados.filter(item => {
+                // Verificar se a data do item corresponde à data do filtro
+                return (item.data === dataFormatadaBR || item.rawDate === dataUnica) && !item.comprado;
+            });
+            
+            if (dadosFiltrados.length === 0) {
+                alert(`Nenhuma falta encontrada para a data ${dataFormatadaBR}`);
+                return;
+            }
+            
+            filtroAtivo = true;
+            document.getElementById('filtroInfo').innerHTML = `<strong>Filtro:</strong> Mostrando faltas da data ${dataFormatadaBR} (${dadosFiltrados.length} item(s))`;
+            
+        } else if (dataInicio && dataFim) {
+            // Filtro por período
+            const inicio = new Date(dataInicio);
+            const fim = new Date(dataFim);
+            
+            if (inicio > fim) {
+                alert("A data inicial não pode ser maior que a data final!");
+                return;
+            }
+            
+            dadosFiltrados = dados.filter(item => {
+                if (item.comprado) return false;
+                
+                // Tentar usar rawDate (formato ISO) primeiro, depois data (formato BR)
+                let dataItem = null;
+                if (item.rawDate) {
+                    dataItem = new Date(item.rawDate);
+                } else if (item.data) {
+                    // Converter data BR para ISO
+                    const dataISO = converterDataBRparaISO(item.data);
+                    if (dataISO) {
+                        dataItem = new Date(dataISO);
+                    }
+                }
+                
+                if (!dataItem) return false;
+                
+                // Verificar se a data está dentro do período
+                return dataItem >= inicio && dataItem <= fim;
+            });
+            
+            if (dadosFiltrados.length === 0) {
+                const inicioBR = dataInicio.split('-').reverse().join('/');
+                const fimBR = dataFim.split('-').reverse().join('/');
+                alert(`Nenhuma falta encontrada para o período de ${inicioBR} a ${fimBR}`);
+                return;
+            }
+            
+            filtroAtivo = true;
+            const inicioBR = dataInicio.split('-').reverse().join('/');
+            const fimBR = dataFim.split('-').reverse().join('/');
+            document.getElementById('filtroInfo').innerHTML = `<strong>Filtro:</strong> Mostrando faltas de ${inicioBR} a ${fimBR} (${dadosFiltrados.length} item(s))`;
+            
+        } else {
+            alert("Selecione uma data específica OU um período (data inicial e final) para filtrar.");
+            return;
+        }
+        
+        // Renderizar os dados filtrados
+        renderizar();
+        atualizarGraficosFiltrados();
+    }
+
+    // NOVA FUNÇÃO: LIMPAR FILTRO
+    function limparFiltroData() {
+        filtroAtivo = false;
+        dadosFiltrados = [];
+        
+        // Resetar campos de filtro para valores padrão
+        const hoje = new Date();
+        const dataFormatada = hoje.toISOString().split('T')[0];
+        const primeiraDataMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const primeiraDataFormatada = primeiraDataMes.toISOString().split('T')[0];
+        
+        document.getElementById('filtroDataUnica').value = dataFormatada;
+        document.getElementById('filtroDataInicio').value = primeiraDataFormatada;
+        document.getElementById('filtroDataFim').value = dataFormatada;
+        
+        // Renderizar todos os dados novamente
+        renderizar();
+        atualizarGraficos();
+    }
+
+    // NOVA FUNÇÃO: ATUALIZAR GRÁFICOS COM DADOS FILTRADOS
+    function atualizarGraficosFiltrados() {
+        const dias = {};
+        dadosFiltrados.forEach(i => {
+            if (i.data) {
+                dias[i.data] = (dias[i.data] || 0) + ((i.venda || 0) * (i.qtd || 0));
+            }
+        });
+        
+        const labels = Object.keys(dias).sort();
+        if(barChart) barChart.destroy();
+        
+        if (labels.length > 0) {
+            barChart = new Chart(document.getElementById('graficoBarras'), {
+                type: 'bar', 
+                data: { 
+                    labels, 
+                    datasets: [{
+                        label: 'Perda Diária R$', 
+                        data: labels.map(l => dias[l]), 
+                        backgroundColor: '#d32f2f',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Perda: ${formatarMoedaBR(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return formatarMoedaBR(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Se não houver dados para o gráfico, mostrar mensagem
+            const ctx = document.getElementById('graficoBarras').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sem dados para o período filtrado', ctx.canvas.width / 2, ctx.canvas.height / 2);
+        }
+
+        const m = { 'Estoque Zerado': 0, 'Fornecedor Indisponível': 0, 'Produto Novo': 0 };
+        dadosFiltrados.forEach(i => {
+            const motivo = i.motivo || 'Estoque Zerado';
+            m[motivo] = (m[motivo] || 0) + 1;
+        });
+        
+        if(pieChart) pieChart.destroy();
+        
+        if (dadosFiltrados.length > 0) {
+            pieChart = new Chart(document.getElementById('graficoPizza'), {
+                type: 'pie', 
+                data: { 
+                    labels: Object.keys(m), 
+                    datasets: [{
+                        data: Object.values(m), 
+                        backgroundColor: ['#0277bd', '#fbc02d', '#2e7d32'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    } 
+                }
+            });
+        } else {
+            // Se não houver dados para o gráfico, mostrar mensagem
+            const ctx = document.getElementById('graficoPizza').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sem dados para o período filtrado', ctx.canvas.width / 2, ctx.canvas.height / 2);
+        }
     }
 
     function adicionarAoFirebase() {
@@ -620,8 +983,10 @@
     }
 
     function atualizarGraficos() {
+        const dadosParaGraficos = filtroAtivo ? dadosFiltrados : dados.filter(i => !i.comprado);
+        
         const dias = {};
-        dados.filter(i => !i.comprado).forEach(i => {
+        dadosParaGraficos.forEach(i => {
             if (i.data) {
                 dias[i.data] = (dias[i.data] || 0) + ((i.venda || 0) * (i.qtd || 0));
             }
@@ -671,14 +1036,14 @@
         }
 
         const m = { 'Estoque Zerado': 0, 'Fornecedor Indisponível': 0, 'Produto Novo': 0 };
-        dados.filter(i => !i.comprado).forEach(i => {
+        dadosParaGraficos.forEach(i => {
             const motivo = i.motivo || 'Estoque Zerado';
             m[motivo] = (m[motivo] || 0) + 1;
         });
         
         if(pieChart) pieChart.destroy();
         
-        if (dados.filter(i => !i.comprado).length > 0) {
+        if (dadosParaGraficos.length > 0) {
             pieChart = new Chart(document.getElementById('graficoPizza'), {
                 type: 'pie', 
                 data: { 
@@ -728,7 +1093,10 @@
         doc.setTextColor(100);
         doc.text("Cuidando da sua saúde, economia e preço baixo", 14, 28);
         
-        const rows = dados.filter(i => !i.comprado).map(i => [
+        // Usar dados filtrados se houver filtro ativo
+        const dadosParaPDF = filtroAtivo ? dadosFiltrados : dados.filter(i => !i.comprado);
+        
+        const rows = dadosParaPDF.map(i => [
             i.data || i.rawDate, 
             i.desc, 
             i.qtd, 
@@ -744,19 +1112,29 @@
             styles: {fontSize: 9}
         });
         
-        const totalPerda = dados.filter(i => !i.comprado)
+        const totalPerda = dadosParaPDF
             .reduce((sum, i) => sum + ((i.venda || 0) * (i.qtd || 0)), 0);
         
         doc.setFontSize(11);
         doc.setTextColor(211, 47, 47);
         doc.text(`TOTAL PERDAS: ${formatarMoedaBR(totalPerda)}`, 14, doc.lastAutoTable.finalY + 10);
         
+        // Adicionar informação do filtro se aplicável
+        if (filtroAtivo) {
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text(`Relatório filtrado - ${document.getElementById('filtroInfo').textContent}`, 14, doc.lastAutoTable.finalY + 20);
+        }
+        
         doc.save(`souza_farma_relatorio_${new Date().toISOString().slice(0,10)}.pdf`);
     }
 
     function exportarExcel() {
+        // Usar dados filtrados se houver filtro ativo
+        const dadosParaExcel = filtroAtivo ? dadosFiltrados : dados.filter(i => !i.comprado);
+        
         let csv = '\uFEFFData;Produto;Qtd;Custo;Venda;Lucro;Status;Motivo\n';
-        dados.forEach(i => {
+        dadosParaExcel.forEach(i => {
             const lucro = (i.venda || 0) - (i.custo || 0);
             csv += `${i.data || i.rawDate};${i.desc};${i.qtd};${formatarNumeroBR(i.custo || 0)};${formatarNumeroBR(i.venda || 0)};${formatarNumeroBR(lucro)};${i.comprado ? 'Comprado':'Falta'};${i.motivo || ''}\n`;
         });
@@ -769,7 +1147,14 @@
     function imprimirTermica() {
         // Adicionar um título ao relatório antes de imprimir
         const tabelaOriginal = document.getElementById('areaFaltas').innerHTML;
-        const tituloRelatorio = '<div class="relatorio-titulo">RELATÓRIO DE FALTAS - SOUZA FARMA</div>';
+        
+        // Adicionar informação do filtro se aplicável
+        let tituloRelatorio = '<div class="relatorio-titulo">RELATÓRIO DE FALTAS - SOUZA FARMA</div>';
+        if (filtroAtivo) {
+            const infoFiltro = document.getElementById('filtroInfo').textContent;
+            tituloRelatorio += `<div class="relatorio-titulo" style="font-size: 9px;">${infoFiltro}</div>`;
+        }
+        
         document.getElementById('areaFaltas').innerHTML = tituloRelatorio + tabelaOriginal;
         
         // Adicionar classe especial para impressão térmica
@@ -805,7 +1190,9 @@
     }
     
     function enviarWhatsApp() {
-        const faltas = dados.filter(i => !i.comprado);
+        // Usar dados filtrados se houver filtro ativo
+        const faltas = filtroAtivo ? dadosFiltrados : dados.filter(i => !i.comprado);
+        
         if (faltas.length === 0) {
             alert("Não há itens em falta para enviar!");
             return;
@@ -813,7 +1200,15 @@
         
         let m = "*SOUZA FARMA - RELATÓRIO DE FALTAS*%0A%0A";
         m += `Data: ${new Date().toLocaleDateString('pt-BR')}%0A`;
-        m += `Total de itens: ${faltas.length}%0A%0A`;
+        m += `Total de itens: ${faltas.length}%0A`;
+        
+        // Adicionar informação do filtro se aplicável
+        if (filtroAtivo) {
+            const infoFiltro = document.getElementById('filtroInfo').textContent;
+            m += `Filtro: ${infoFiltro}%0A`;
+        }
+        
+        m += `%0A`;
         
         faltas.forEach(i => {
             const total = (i.venda || 0) * (i.qtd || 0);
